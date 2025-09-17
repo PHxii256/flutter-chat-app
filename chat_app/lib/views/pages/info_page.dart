@@ -1,5 +1,5 @@
 // ignore_for_file: avoid_print
-import 'package:chat_app/chat_room.dart';
+import 'package:chat_app/views/pages/chat_room_page.dart';
 import 'package:flutter/material.dart';
 
 class UserInfoPage extends StatefulWidget {

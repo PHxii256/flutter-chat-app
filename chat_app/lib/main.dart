@@ -1,4 +1,4 @@
-import 'package:chat_app/info_page.dart';
+import 'package:chat_app/views/pages/info_page.dart';
 import 'package:flutter/material.dart';
 
 void main() => runApp(MyApp());

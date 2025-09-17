@@ -1,0 +1,68 @@
+// ignore_for_file: avoid_print
+import 'package:chat_app/models/message_data.dart';
+import 'package:chat_app/views/components/input_toast_component.dart';
+import 'package:flutter/material.dart';
+
+class MessageOptionsMenu extends StatelessWidget {
+  final Function(MessageData msg) deleteMessage;
+  final Function(InputToast toast) onShowToast;
+  final Function() onCloseToast;
+  final TextEditingController textController;
+  final MessageData message;
+  final String username;
+
+  const MessageOptionsMenu({
+    super.key,
+    required this.username,
+    required this.onShowToast,
+    required this.onCloseToast,
+    required this.textController,
+    required this.deleteMessage,
+    required this.message,
+  });
+
+  bool isOwnMessage(MessageData msg) => msg.username == username;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 200,
+      child: Center(
+        child: ListView(
+          padding: EdgeInsets.all(16),
+          children: [
+            ElevatedButton(
+              onPressed: () {
+                onShowToast(
+                  ReplyToast(closeCallback: onCloseToast, replyToUsername: message.username),
+                );
+                Navigator.pop(context);
+              },
+              child: Text('Reply To Message'),
+            ),
+            isOwnMessage(message)
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          onShowToast(EditToast(closeCallback: onCloseToast));
+                          textController.text = message.content;
+                          Navigator.pop(context);
+                        },
+                        child: Text('Edit Message'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () => deleteMessage(message),
+                        child: Text('Delete Message', style: TextStyle(color: Colors.red)),
+                      ),
+                    ],
+                  )
+                : Container(),
+          ],
+        ),
+      ),
+    );
+    ;
+  }
+}

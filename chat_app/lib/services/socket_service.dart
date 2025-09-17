@@ -28,15 +28,6 @@ class SocketService {
 
   SocketService._internal();
 
-  void removeOldListeners() {
-    if (socket != null) {
-      socket!.off('connect');
-      socket!.off('connect_error');
-      socket!.off('chat-message');
-      socket!.off('disconnect');
-    }
-  }
-
   void connectAndListen({required String roomCode, required String username}) {
     // Always create a new socket to ensure a clean state
     if (socket != null) {
@@ -92,6 +83,16 @@ class SocketService {
       print('Message sent: $message');
     } else {
       print('Cannot send message, socket not connected.');
+    }
+  }
+
+  //to:do listen for the event both on the server and in the client
+  void updateMessage({required String messageId, required String newContent}) {
+    if (socket != null && socket!.connected) {
+      socket!.emit('update-message', {"messageId": messageId, "newContent": newContent});
+      print('Message updated');
+    } else {
+      print('Cannot update message, socket not connected.');
     }
   }
 
