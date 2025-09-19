@@ -65,16 +65,17 @@ class _ChatRoomState extends State<ChatRoom> {
     setState(() {
       try {
         dynamic decodedMsg = jsonDecode(msg);
-        if (decodedMsg is Map<String, dynamic> && decodedMsg["serverMsg"] == null) {
+        if (decodedMsg["serverMsg"] == null) {
           messages.add(MessageData.fromJson(decodedMsg, widget.roomCode));
-        } else if (decodedMsg is Map<String, dynamic> && decodedMsg["serverMsg"] != null) {
+        } else if (decodedMsg["serverMsg"] != null) {
           messages.add(
             MessageData(
               roomCode: widget.roomCode,
-              id: decodedMsg["_id"],
-              userId: 'Server',
+              id: "${DateTime.now().toIso8601String()}: ${decodedMsg["serverMsg"].toString()}",
+              senderId: 'Server',
               content: decodedMsg["serverMsg"].toString(),
               createdAt: DateTime.now(),
+              username: 'Server',
             ),
           );
         }
@@ -99,8 +100,7 @@ class _ChatRoomState extends State<ChatRoom> {
 
         setState(() {
           final idx = messages.indexOf(msgToBeUpdated);
-          messages.removeAt(idx);
-          messages.insert(idx, msgData);
+          messages[idx] = msgData;
         });
       }
     } catch (e) {
@@ -130,10 +130,10 @@ class _ChatRoomState extends State<ChatRoom> {
     });
   }
 
-  String getSender(int index) {
+  String? getSender(int index) {
     final lastMessage = messages[index];
 
-    if (lastMessage.userId == 'Server') {
+    if (lastMessage.senderId == 'Server') {
       return lastMessage.content;
     } else {
       return "${lastMessage.username}: ${lastMessage.content}";
@@ -141,9 +141,7 @@ class _ChatRoomState extends State<ChatRoom> {
   }
 
   String getMessageTime(int index) {
-    return DateFormat(
-      'h:mm a',
-    ).format(messages[index].createdAt ?? DateTime.fromMillisecondsSinceEpoch(0));
+    return DateFormat('h:mm a').format(messages[index].createdAt);
   }
 
   @override
@@ -164,16 +162,16 @@ class _ChatRoomState extends State<ChatRoom> {
                     itemBuilder: (context, index) {
                       return ListTile(
                         leading: Text(getMessageTime(index)),
-                        title: Text(getSender(index)),
+                        title: Text(getSender(index) ?? 'anon'),
                         onLongPress: () {
-                          if (mounted && messages[index].userId != "Server") {
+                          if (mounted && messages[index].senderId != "Server") {
                             showModalBottomSheet(
                               context: context,
                               builder: (context) {
                                 return MessageOptionsMenu(
                                   editMsg: (msg) {
                                     socketService.updateMessage(
-                                      messageId: msg.id!,
+                                      messageId: msg.id,
                                       newContent: textController.text,
                                       roomCode: widget.roomCode,
                                     );
