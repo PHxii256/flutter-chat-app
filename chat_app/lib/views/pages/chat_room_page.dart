@@ -8,6 +8,7 @@ import 'package:chat_app/views/components/input_toast_component.dart';
 import 'package:chat_app/views/components/message_options_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:collection/collection.dart';
 
 class ChatRoom extends StatefulWidget {
   const ChatRoom({super.key, this.username = "default user", this.roomCode = "general"});
@@ -31,13 +32,14 @@ class _ChatRoomState extends State<ChatRoom> {
     super.initState();
     loadChatHistory();
     socketService.connectAndListen(roomCode: widget.roomCode, username: widget.username);
-    socketService.onMessage = updateMessages;
+    socketService.onMessageReceived = addMessage;
+    socketService.onMessageUpdated = updateMessage;
   }
 
   @override
   void dispose() {
     scrollController.dispose();
-    socketService.onMessage = null;
+    socketService.onMessageReceived = null;
     socketService.dispose();
     super.dispose();
   }
@@ -58,7 +60,7 @@ class _ChatRoomState extends State<ChatRoom> {
     }
   }
 
-  void updateMessages(dynamic msg) {
+  void addMessage(dynamic msg) {
     if (!mounted) return;
     setState(() {
       try {
@@ -81,6 +83,29 @@ class _ChatRoomState extends State<ChatRoom> {
       }
     });
     jumpToLastMessage();
+  }
+
+  void updateMessage(dynamic updatedMsg) {
+    if (!mounted) return;
+    try {
+      dynamic decodedMsg = jsonDecode(updatedMsg);
+      final msgToBeUpdated = messages.firstWhereOrNull((msg) => msg.id == decodedMsg["messageId"]);
+
+      if (msgToBeUpdated != null) {
+        final MessageData msgData = msgToBeUpdated.copyWith(
+          content: decodedMsg["newContent"],
+          updatedAt: DateTime.now(),
+        );
+
+        setState(() {
+          final idx = messages.indexOf(msgToBeUpdated);
+          messages.removeAt(idx);
+          messages.insert(idx, msgData);
+        });
+      }
+    } catch (e) {
+      print("oopsie couldnt update message, $e");
+    }
   }
 
   void jumpToLastMessage({bool animated = true}) {
@@ -146,6 +171,13 @@ class _ChatRoomState extends State<ChatRoom> {
                               context: context,
                               builder: (context) {
                                 return MessageOptionsMenu(
+                                  editMsg: (msg) {
+                                    socketService.updateMessage(
+                                      messageId: msg.id!,
+                                      newContent: textController.text,
+                                      roomCode: widget.roomCode,
+                                    );
+                                  },
                                   deleteMessage: (msg) {
                                     setState(() => messages.remove(msg));
                                     Navigator.pop(context);

@@ -30,7 +30,6 @@ class _ChatScreenInputState extends State<ChatScreenInput> {
   void sendMessage() {
     if (widget.textController.text.isNotEmpty && widget.socketService.socket != null) {
       final InputToast? toast = widget.getToast();
-
       if (toast != null) {
         toast.performAction();
         widget.closeToast();
@@ -42,6 +41,7 @@ class _ChatScreenInputState extends State<ChatScreenInput> {
         );
       }
 
+      FocusScope.of(context).unfocus();
       widget.textController.clear();
     }
   }

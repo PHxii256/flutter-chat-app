@@ -24,7 +24,9 @@ class SocketService {
     return _instance;
   }
 
-  Function(dynamic data)? onMessage;
+  Function(dynamic data)? onMessageReceived;
+
+  Function(dynamic data)? onMessageUpdated;
 
   SocketService._internal();
 
@@ -51,8 +53,17 @@ class SocketService {
         print('Received null data from socket');
         return;
       }
-      onMessage?.call(data);
+      onMessageReceived?.call(data);
       print('New message: $data');
+    });
+
+    socket!.on('message-update', (data) {
+      if (data == null) {
+        print('Received null data from socket');
+        return;
+      }
+      onMessageUpdated?.call(data);
+      print('New message update!!!!!!!!: $data');
     });
     socket!.on('disconnect', (_) {
       print('Disconnected from socket server');
@@ -87,10 +98,17 @@ class SocketService {
   }
 
   //to:do listen for the event both on the server and in the client
-  void updateMessage({required String messageId, required String newContent}) {
+  void updateMessage({
+    required String messageId,
+    required String newContent,
+    required String roomCode,
+  }) {
     if (socket != null && socket!.connected) {
-      socket!.emit('update-message', {"messageId": messageId, "newContent": newContent});
-      print('Message updated');
+      socket!.emit('message-update', {
+        "messageId": messageId,
+        "roomCode": roomCode,
+        "newContent": newContent,
+      });
     } else {
       print('Cannot update message, socket not connected.');
     }

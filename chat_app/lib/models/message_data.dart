@@ -52,4 +52,24 @@ class MessageData {
   String toString() {
     return 'MessageData{userId: $userId, roomCode: $roomCode, username: $username, id: $id, content: $content, createdAt: $createdAt, updatedAt: $updatedAt}';
   }
+
+  MessageData copyWith({
+    String? userId,
+    String? roomCode,
+    String? username,
+    String? id,
+    String? content,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return MessageData(
+      userId: userId ?? this.userId,
+      roomCode: roomCode ?? this.roomCode,
+      username: username ?? this.username,
+      id: id ?? this.id,
+      content: content ?? this.content,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
 }

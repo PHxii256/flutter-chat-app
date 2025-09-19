@@ -44,9 +44,11 @@ class ReplyToast extends InputToast {
 }
 
 class EditToast extends InputToast {
-  const EditToast({super.key, required super.closeCallback})
+  final Function sendEdit;
+
+  const EditToast({super.key, required super.closeCallback, required this.sendEdit})
     : super(message: "Editing Message", icon: Symbols.edit);
 
   @override
-  void performAction() {}
+  void performAction() => sendEdit();
 }

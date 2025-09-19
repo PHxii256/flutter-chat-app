@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 class MessageOptionsMenu extends StatelessWidget {
   final Function(MessageData msg) deleteMessage;
+  final Function(MessageData msg) editMsg;
   final Function(InputToast toast) onShowToast;
   final Function() onCloseToast;
   final TextEditingController textController;
@@ -19,6 +20,7 @@ class MessageOptionsMenu extends StatelessWidget {
     required this.textController,
     required this.deleteMessage,
     required this.message,
+    required this.editMsg,
   });
 
   bool isOwnMessage(MessageData msg) => msg.username == username;
@@ -46,8 +48,14 @@ class MessageOptionsMenu extends StatelessWidget {
                     children: [
                       ElevatedButton(
                         onPressed: () {
-                          onShowToast(EditToast(closeCallback: onCloseToast));
+                          onShowToast(
+                            EditToast(
+                              closeCallback: onCloseToast,
+                              sendEdit: () => editMsg(message),
+                            ),
+                          );
                           textController.text = message.content;
+
                           Navigator.pop(context);
                         },
                         child: Text('Edit Message'),
