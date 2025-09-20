@@ -1,5 +1,6 @@
 // ignore_for_file: avoid_print
 // ignore: library_prefixes
+import 'package:chat_app/models/message_data.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -81,12 +82,18 @@ class SocketService {
     print('Joined room: $roomCode for user: $username');
   }
 
-  void sendMessage({required String username, required String roomCode, required String content}) {
+  void sendMessage({
+    required String username,
+    required String roomCode,
+    required String content,
+    ReplyTo? replyTo,
+  }) {
     final message = {
       "username": username,
       "roomCode": roomCode,
       "content": content,
       "createdAt": DateTime.now().toIso8601String(),
+      "replyTo": replyTo?.toJson(),
     };
 
     if (socket != null && socket!.connected) {

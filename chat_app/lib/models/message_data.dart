@@ -6,6 +6,7 @@ class MessageData {
   final String content;
   final DateTime createdAt;
   final DateTime? updatedAt;
+  final ReplyTo? replyTo;
 
   const MessageData({
     required this.senderId,
@@ -15,6 +16,7 @@ class MessageData {
     required this.content,
     required this.createdAt,
     this.updatedAt,
+    this.replyTo,
   });
 
   factory MessageData.fromJson(Map<String, dynamic> json, String roomCode) {
@@ -22,6 +24,16 @@ class MessageData {
       if (value == null) return null;
       if (value is String) return DateTime.tryParse(value);
       if (value is int) return DateTime.fromMillisecondsSinceEpoch(value);
+      return null;
+    }
+
+    ReplyTo? getMsgRepliedTo() {
+      if (json.containsKey("replyTo") && json["replyTo"] != null) {
+        return ReplyTo(
+          content: json["replyTo"]["content"],
+          messageId: json["replyTo"]["messageId"],
+        );
+      }
       return null;
     }
 
@@ -33,6 +45,7 @@ class MessageData {
       content: json['content'] as String? ?? "empty message",
       createdAt: parseDate(json['createdAt']) ?? DateTime.now(),
       updatedAt: parseDate(json['updatedAt']),
+      replyTo: getMsgRepliedTo(),
     );
   }
 
@@ -45,12 +58,13 @@ class MessageData {
       'content': content,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt?.toIso8601String(),
+      'replyTo': replyTo?.toJson(),
     };
   }
 
   @override
   String toString() {
-    return 'MessageData{senderId: $senderId, roomCode: $roomCode, username: $username, id: $id, content: $content, createdAt: $createdAt, updatedAt: $updatedAt}';
+    return 'MessageData{senderId: $senderId, roomCode: $roomCode, username: $username, id: $id, content: $content, createdAt: $createdAt, updatedAt: $updatedAt, replyTo: ${replyTo?.toJson()}}';
   }
 
   MessageData copyWith({
@@ -71,5 +85,15 @@ class MessageData {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
+  }
+}
+
+class ReplyTo {
+  final String messageId;
+  final String content;
+  const ReplyTo({required this.content, required this.messageId});
+
+  Map<String, dynamic> toJson() {
+    return {'messageId': messageId, 'content': content};
   }
 }

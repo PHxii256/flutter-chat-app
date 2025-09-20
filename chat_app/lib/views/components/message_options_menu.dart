@@ -1,11 +1,12 @@
 // ignore_for_file: avoid_print
 import 'package:chat_app/models/message_data.dart';
-import 'package:chat_app/views/components/input_toast_component.dart';
+import 'package:chat_app/views/components/input_toast.dart';
 import 'package:flutter/material.dart';
 
 class MessageOptionsMenu extends StatelessWidget {
   final Function(MessageData msg) deleteMessage;
   final Function(MessageData msg) editMsg;
+  final Function(MessageData repliedToMsg) replyToMsg;
   final Function(InputToast toast) onShowToast;
   final Function() onCloseToast;
   final TextEditingController textController;
@@ -21,6 +22,7 @@ class MessageOptionsMenu extends StatelessWidget {
     required this.deleteMessage,
     required this.message,
     required this.editMsg,
+    required this.replyToMsg,
   });
 
   bool isOwnMessage(MessageData msg) => msg.username == username;
@@ -36,7 +38,11 @@ class MessageOptionsMenu extends StatelessWidget {
             ElevatedButton(
               onPressed: () {
                 onShowToast(
-                  ReplyToast(closeCallback: onCloseToast, replyToUsername: message.username),
+                  ReplyToast(
+                    closeCallback: onCloseToast,
+                    messageRepliedTo: message,
+                    sendReply: () => replyToMsg(message),
+                  ),
                 );
                 Navigator.pop(context);
               },

@@ -1,7 +1,7 @@
 // ignore_for_file: avoid_print
 import 'package:chat_app/views/pages/info_page.dart';
 import 'package:chat_app/services/socket_service.dart';
-import 'package:chat_app/views/components/input_toast_component.dart';
+import 'package:chat_app/views/components/input_toast.dart';
 import 'package:flutter/material.dart';
 
 class ChatScreenInput extends StatefulWidget {

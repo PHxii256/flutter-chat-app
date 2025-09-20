@@ -1,3 +1,4 @@
+import 'package:chat_app/models/message_data.dart';
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
@@ -35,12 +36,18 @@ abstract class InputToast extends StatelessWidget {
 }
 
 class ReplyToast extends InputToast {
-  final String? replyToUsername;
-  const ReplyToast({super.key, required super.closeCallback, required this.replyToUsername})
-    : super(message: "Reply To $replyToUsername", icon: Symbols.reply);
+  final MessageData messageRepliedTo;
+  final Function sendReply;
+
+  ReplyToast({
+    super.key,
+    required super.closeCallback,
+    required this.sendReply,
+    required this.messageRepliedTo,
+  }) : super(message: "Reply To ${messageRepliedTo.username}", icon: Symbols.reply);
 
   @override
-  void performAction() {}
+  void performAction() => sendReply();
 }
 
 class EditToast extends InputToast {
