@@ -1,8 +1,10 @@
 // ignore_for_file: avoid_print
 // ignore: library_prefixes
 import 'package:chat_app/models/message_data.dart';
+// ignore: library_prefixes
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'dart:io' show Platform;
+import 'dart:async';
 import 'package:flutter/foundation.dart' show kIsWeb;
 
 String getSocketUrl() {
@@ -31,24 +33,38 @@ class SocketService {
 
   SocketService._internal();
 
-  void connectAndListen({required String roomCode, required String username}) {
+  bool get isConnected => socket?.connected ?? false;
+
+  Future<bool> connectAndListen({required String roomCode, required String username}) async {
     // Always create a new socket to ensure a clean state
     if (socket != null) {
       socket!.disconnect();
       socket = null;
     }
+
+    final completer = Completer<bool>();
+
     socket = IO.io(getSocketUrl(), <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': false,
     });
+
     // Register listeners first
     socket!.on('connect', (_) {
       print('Connected to socket server');
       _joinRoom(roomCode: roomCode, username: username);
+      if (!completer.isCompleted) {
+        completer.complete(true);
+      }
     });
+
     socket!.on('connect_error', (data) {
       print('Socket connect_error (unreadable): $data');
+      if (!completer.isCompleted) {
+        completer.complete(false);
+      }
     });
+
     socket!.on('chat-message', (data) {
       if (data == null) {
         print('Received null data from socket');
@@ -66,13 +82,28 @@ class SocketService {
       onMessageUpdated?.call(data);
       print('New message update!!!!!!!!: $data');
     });
+
     socket!.on('disconnect', (_) {
       print('Disconnected from socket server');
     });
+
     try {
       socket!.connect();
+
+      // Set a timeout for connection attempt
+      Timer(const Duration(seconds: 5), () {
+        if (!completer.isCompleted) {
+          completer.complete(false);
+        }
+      });
+
+      return await completer.future;
     } catch (e) {
       print('Error during socket connection: $e');
+      if (!completer.isCompleted) {
+        completer.complete(false);
+      }
+      return false;
     }
   }
 
@@ -104,7 +135,6 @@ class SocketService {
     }
   }
 
-  //to:do listen for the event both on the server and in the client
   void updateMessage({
     required String messageId,
     required String newContent,

@@ -1,113 +1,34 @@
 // ignore_for_file: avoid_print
-import 'dart:convert';
 import 'package:chat_app/models/message_data.dart';
-import 'package:chat_app/repositories/messages_repo.dart';
-import 'package:chat_app/services/socket_service.dart';
+import 'package:chat_app/view_models/chat_room_notifier.dart';
 import 'package:chat_app/views/components/chat_screen_input.dart';
 import 'package:chat_app/views/components/input_toast.dart';
 import 'package:chat_app/views/components/message_options_menu.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:collection/collection.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
-class ChatRoom extends StatefulWidget {
+class ChatRoom extends ConsumerStatefulWidget {
   const ChatRoom({super.key, this.username = "default user", this.roomCode = "general"});
 
   final String username;
   final String roomCode;
 
   @override
-  State<ChatRoom> createState() => _ChatRoomState();
+  ConsumerState<ChatRoom> createState() => _ChatRoomState();
 }
 
-class _ChatRoomState extends State<ChatRoom> {
+class _ChatRoomState extends ConsumerState<ChatRoom> {
   final Map<String, GlobalKey> _messageKeys = {};
   final ScrollController scrollController = ScrollController();
-  final SocketService socketService = SocketService();
   final TextEditingController textController = TextEditingController();
-  final List<MessageData> messages = [];
   InputToast? currentToast;
-
-  @override
-  void initState() {
-    super.initState();
-    loadChatHistory();
-    socketService.connectAndListen(roomCode: widget.roomCode, username: widget.username);
-    socketService.onMessageReceived = addMessage;
-    socketService.onMessageUpdated = updateMessage;
-  }
 
   @override
   void dispose() {
     scrollController.dispose();
-    socketService.onMessageReceived = null;
-    socketService.dispose();
     super.dispose();
-  }
-
-  void loadChatHistory() async {
-    try {
-      List<MessageData> history = await fetchChatHistory(widget.roomCode);
-      setState(() {
-        //ASSUMPTION !!!!: SYSTEM MESSAGES COME FIRST
-        final welcomeMsg = messages.lastOrNull;
-        messages.clear();
-        messages.addAll(history);
-        if (welcomeMsg != null) messages.insert(history.length, welcomeMsg);
-      });
-      jumpToLastMessage(animated: false);
-    } catch (e) {
-      print('Error loading chat history: $e');
-    }
-  }
-
-  void addMessage(dynamic msg) {
-    if (!mounted) return;
-    setState(() {
-      try {
-        dynamic decodedMsg = jsonDecode(msg);
-        if (decodedMsg["serverMsg"] == null) {
-          messages.add(MessageData.fromJson(decodedMsg, widget.roomCode));
-        } else if (decodedMsg["serverMsg"] != null) {
-          messages.add(
-            MessageData(
-              roomCode: widget.roomCode,
-              id: "${DateTime.now().toIso8601String()}: ${decodedMsg["serverMsg"].toString()}",
-              senderId: 'Server',
-              content: decodedMsg["serverMsg"].toString(),
-              createdAt: DateTime.now(),
-              username: 'Server',
-            ),
-          );
-        }
-      } catch (e) {
-        print('Error decoding message: $e');
-      }
-    });
-    jumpToLastMessage();
-  }
-
-  void updateMessage(dynamic updatedMsg) {
-    if (!mounted) return;
-    try {
-      dynamic decodedMsg = jsonDecode(updatedMsg);
-      final msgToBeUpdated = messages.firstWhereOrNull((msg) => msg.id == decodedMsg["messageId"]);
-
-      if (msgToBeUpdated != null) {
-        final MessageData msgData = msgToBeUpdated.copyWith(
-          content: decodedMsg["newContent"],
-          updatedAt: DateTime.now(),
-        );
-
-        setState(() {
-          final idx = messages.indexOf(msgToBeUpdated);
-          messages[idx] = msgData;
-        });
-      }
-    } catch (e) {
-      print("oopsie couldnt update message, $e");
-    }
   }
 
   void jumpToMessageById(String messageId) {
@@ -150,84 +71,117 @@ class _ChatRoomState extends State<ChatRoom> {
 
   @override
   Widget build(BuildContext context) {
+    final chatroomProvider = chatRoomProvider(roomCode: widget.roomCode, username: widget.username);
+    final messages = ref.watch(chatroomProvider);
+
+    // Set up callback for the notifier to trigger scrolling
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final notifier = ref.read(chatroomProvider.notifier);
+      notifier.onMessagesChanged = () {
+        jumpToLastMessage(animated: true);
+      };
+      notifier.onHistoryLoaded = () {
+        jumpToLastMessage(animated: false);
+      };
+    });
+
     return MaterialApp(
       home: Scaffold(
+        resizeToAvoidBottomInset: true, // This is default, but being explicit
         appBar: AppBar(title: Text('Chat Room #${widget.roomCode}')),
         body: Column(
           children: [
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(8.0, 8.0, 8.0, 0.0),
-                child: Scrollbar(
-                  controller: scrollController,
-                  child: ListView.builder(
+                child: switch (messages) {
+                  AsyncValue(:final value?) => Scrollbar(
                     controller: scrollController,
-                    itemCount: messages.length,
-                    itemBuilder: (context, index) {
-                      final message = messages[index];
-                      // Create or get existing key for this message
-                      _messageKeys.putIfAbsent(message.id, () => GlobalKey());
+                    child: ListView.builder(
+                      controller: scrollController,
+                      padding: EdgeInsets.zero, // Remove default padding
+                      itemCount: value.length,
+                      itemBuilder: (context, index) {
+                        final message = value[index];
+                        // Create or get existing key for this message
+                        _messageKeys.putIfAbsent(message.id, () => GlobalKey());
 
-                      return MessageTile(
-                        key: _messageKeys[message.id],
-                        message: message,
-                        index: index,
-                        onTap: () {
-                          if (messages[index].replyTo == null) return;
-                          final id = messages[index].replyTo!.messageId;
-                          jumpToMessageById(id);
-                        },
-                        onLongPress: () {
-                          if (mounted && messages[index].senderId != "Server") {
-                            showModalBottomSheet(
-                              context: context,
-                              builder: (context) {
-                                return MessageOptionsMenu(
-                                  editMsg: (msg) {
-                                    socketService.updateMessage(
-                                      messageId: msg.id,
-                                      newContent: textController.text,
-                                      roomCode: widget.roomCode,
-                                    );
-                                  },
-                                  replyToMsg: (repliedToMsg) {
-                                    socketService.sendMessage(
-                                      username: widget.username,
-                                      roomCode: widget.roomCode,
-                                      content: textController.text,
-                                      replyTo: ReplyTo(
-                                        content: repliedToMsg.content,
-                                        messageId: repliedToMsg.id,
-                                      ),
-                                    );
-                                  },
-                                  deleteMessage: (msg) {
-                                    setState(() => messages.remove(msg));
-                                    Navigator.pop(context);
-                                  },
-                                  username: widget.username,
-                                  onShowToast: (InputToast toast) {
-                                    setState(() => currentToast = toast);
-                                  },
-                                  onCloseToast: () {
-                                    setState(() => currentToast = null);
-                                  },
-                                  textController: textController,
-                                  message: messages[index],
-                                );
-                              },
-                            );
-                          }
-                        },
-                      );
-                    },
+                        return MessageTile(
+                          key: _messageKeys[message.id],
+                          message: message,
+                          index: index,
+                          onTap: () {
+                            if (value[index].replyTo == null) return;
+                            final id = value[index].replyTo!.messageId;
+                            jumpToMessageById(id);
+                          },
+                          onLongPress: () {
+                            if (mounted && value[index].senderId != "Server") {
+                              showModalBottomSheet(
+                                context: context,
+                                builder: (context) {
+                                  return MessageOptionsMenu(
+                                    editMsg: (msg) {
+                                      ref
+                                          .read(chatroomProvider.notifier)
+                                          .updateMessage(
+                                            messageId: msg.id,
+                                            newContent: textController.text,
+                                          );
+                                    },
+                                    replyToMsg: (repliedToMsg) {
+                                      ref
+                                          .read(chatroomProvider.notifier)
+                                          .sendMessage(
+                                            username: widget.username,
+                                            content: textController.text,
+                                            replyTo: ReplyTo(
+                                              content: repliedToMsg.content,
+                                              messageId: repliedToMsg.id,
+                                            ),
+                                          );
+                                    },
+                                    deleteMessage: (msg) {
+                                      print("msg content to be deleted: ${msg.content}");
+                                      ref
+                                          .read(chatroomProvider.notifier)
+                                          .deleteMessage(msgId: msg.id, roomCode: widget.roomCode);
+                                      Navigator.pop(context);
+                                    },
+                                    username: widget.username,
+                                    onShowToast: (InputToast toast) {
+                                      setState(() => currentToast = toast);
+                                    },
+                                    onCloseToast: () {
+                                      setState(() => currentToast = null);
+                                    },
+                                    textController: textController,
+                                    message: value[index],
+                                  );
+                                },
+                              );
+                            }
+                          },
+                        );
+                      },
+                    ),
                   ),
-                ),
+                  // If "error" is non-null, it means that the operation failed.
+                  AsyncValue(error: != null) => Text('Error: ${messages.error}'),
+                  // If we're neither in data state nor in error state, then we're in loading state.
+                  AsyncValue() => Center(
+                    child: SizedBox(
+                      width: 30,
+                      height: 30,
+                      child: const CircularProgressIndicator(),
+                    ),
+                  ),
+                },
               ),
             ),
             ChatScreenInput(
+              chatRoomProvider: chatroomProvider,
               textController: textController,
-              socketService: socketService,
               username: widget.username,
               roomCode: widget.roomCode,
               getToast: () => currentToast,

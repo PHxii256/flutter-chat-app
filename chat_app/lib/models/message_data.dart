@@ -75,6 +75,7 @@ class MessageData {
     String? content,
     DateTime? createdAt,
     DateTime? updatedAt,
+    ReplyTo? replyTo,
   }) {
     return MessageData(
       senderId: senderId ?? this.senderId,
@@ -84,6 +85,7 @@ class MessageData {
       content: content ?? this.content,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      replyTo: replyTo ?? this.replyTo,
     );
   }
 }

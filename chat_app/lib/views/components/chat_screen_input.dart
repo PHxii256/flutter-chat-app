@@ -1,20 +1,21 @@
 // ignore_for_file: avoid_print
+import 'package:chat_app/view_models/chat_room_notifier.dart';
 import 'package:chat_app/views/pages/info_page.dart';
-import 'package:chat_app/services/socket_service.dart';
 import 'package:chat_app/views/components/input_toast.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ChatScreenInput extends StatefulWidget {
+class ChatScreenInput extends ConsumerStatefulWidget {
   final TextEditingController textController;
-  final SocketService socketService;
+  final ChatRoomNotifierProvider chatRoomProvider;
   final String username;
   final String roomCode;
   final InputToast? Function() getToast;
   final Function() closeToast;
   const ChatScreenInput({
     super.key,
+    required this.chatRoomProvider,
     required this.textController,
-    required this.socketService,
     required this.username,
     required this.roomCode,
     required this.getToast,
@@ -22,22 +23,20 @@ class ChatScreenInput extends StatefulWidget {
   });
 
   @override
-  State<ChatScreenInput> createState() => _ChatScreenInputState();
+  ConsumerState<ChatScreenInput> createState() => _ChatScreenInputState();
 }
 
-class _ChatScreenInputState extends State<ChatScreenInput> {
+class _ChatScreenInputState extends ConsumerState<ChatScreenInput> {
   void sendMessage() {
-    if (widget.textController.text.isNotEmpty && widget.socketService.socket != null) {
+    if (widget.textController.text.isNotEmpty && ref.read(widget.chatRoomProvider).hasValue) {
       final InputToast? toast = widget.getToast();
       if (toast != null) {
         toast.performAction();
         widget.closeToast();
       } else {
-        widget.socketService.sendMessage(
-          username: widget.username,
-          roomCode: widget.roomCode,
-          content: widget.textController.text,
-        );
+        ref
+            .read(widget.chatRoomProvider.notifier)
+            .sendMessage(username: widget.username, content: widget.textController.text);
       }
 
       FocusScope.of(context).unfocus();
@@ -47,7 +46,6 @@ class _ChatScreenInputState extends State<ChatScreenInput> {
 
   void exitRoom() {
     if (!mounted) return;
-    widget.socketService.dispose();
     Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => UserInfoPage()));
   }
 
