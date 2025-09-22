@@ -165,6 +165,14 @@ class ChatRoomNotifier extends _$ChatRoomNotifier {
       if (res.statusCode == 200) {
         final json = jsonDecode(res.body) as Map<String, dynamic>;
         print(json["message"]);
+
+        // Update state by removing the message
+        if (state.hasValue) {
+          final currentMessages = state.value!;
+          final updatedMessages = currentMessages.where((m) => m.id != msgId).toList();
+          state = AsyncValue.data(updatedMessages);
+          print('Message deleted successfully: $msgId');
+        }
       } else {
         print('${res.body}: ${res.statusCode}');
       }
