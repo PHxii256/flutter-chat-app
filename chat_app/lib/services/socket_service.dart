@@ -31,6 +31,8 @@ class SocketService {
 
   Function(dynamic data)? onMessageUpdated;
 
+  Function(dynamic data)? onReactionReceived;
+
   SocketService._internal();
 
   bool get isConnected => socket?.connected ?? false;
@@ -81,6 +83,15 @@ class SocketService {
       }
       onMessageUpdated?.call(data);
       print('New message update!!!!!!!!: $data');
+    });
+
+    socket!.on('message-reaction', (data) {
+      if (data == null) {
+        print('Received null reaction data from socket');
+        return;
+      }
+      onReactionReceived?.call(data);
+      print('New reaction update: $data');
     });
 
     socket!.on('disconnect', (_) {
@@ -148,6 +159,30 @@ class SocketService {
       });
     } else {
       print('Cannot update message, socket not connected.');
+    }
+  }
+
+  void sendReaction({
+    required String messageId,
+    required String roomCode,
+    required String emoji,
+    required String senderId,
+    required String senderUsername,
+    required String action, // 'add' or 'remove'
+  }) {
+    if (socket != null && socket!.connected) {
+      socket!.emit('message-reaction', {
+        "messageId": messageId,
+        "roomCode": roomCode,
+        "emoji": emoji,
+        "senderId": senderId,
+        "senderUsername": senderUsername,
+        "action": action,
+        "timestamp": DateTime.now().toIso8601String(),
+      });
+      print('Reaction sent: $action $emoji on message $messageId');
+    } else {
+      print('Cannot send reaction, socket not connected.');
     }
   }
 

@@ -7,6 +7,7 @@ class MessageData {
   final DateTime createdAt;
   final DateTime? updatedAt;
   final ReplyTo? replyTo;
+  final List<MessageReact> reactions;
 
   const MessageData({
     required this.senderId,
@@ -15,6 +16,7 @@ class MessageData {
     required this.id,
     required this.content,
     required this.createdAt,
+    required this.reactions,
     this.updatedAt,
     this.replyTo,
   });
@@ -37,6 +39,24 @@ class MessageData {
       return null;
     }
 
+    List<MessageReact> getMsgReactions() {
+      if (json.containsKey("reactions") && json["reactions"] != null) {
+        List<MessageReact> msgReacts = [];
+        for (Map<String, dynamic> react in json["reactions"]) {
+          msgReacts.add(
+            MessageReact(
+              emoji: react["emoji"],
+              messageId: react["messageId"],
+              senderId: react["senderId"],
+              senderUsername: react["senderUsername"],
+            ),
+          );
+        }
+        return msgReacts;
+      }
+      return [];
+    }
+
     return MessageData(
       senderId: json['senderId'] as String,
       roomCode: roomCode,
@@ -46,6 +66,7 @@ class MessageData {
       createdAt: parseDate(json['createdAt']) ?? DateTime.now(),
       updatedAt: parseDate(json['updatedAt']),
       replyTo: getMsgRepliedTo(),
+      reactions: getMsgReactions(),
     );
   }
 
@@ -59,6 +80,7 @@ class MessageData {
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt?.toIso8601String(),
       'replyTo': replyTo?.toJson(),
+      'reactions': reactions,
     };
   }
 
@@ -76,6 +98,7 @@ class MessageData {
     DateTime? createdAt,
     DateTime? updatedAt,
     ReplyTo? replyTo,
+    List<MessageReact>? reactions,
   }) {
     return MessageData(
       senderId: senderId ?? this.senderId,
@@ -86,6 +109,7 @@ class MessageData {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       replyTo: replyTo ?? this.replyTo,
+      reactions: reactions ?? this.reactions,
     );
   }
 }
@@ -97,5 +121,27 @@ class ReplyTo {
 
   Map<String, dynamic> toJson() {
     return {'messageId': messageId, 'content': content};
+  }
+}
+
+class MessageReact {
+  final String messageId;
+  final String senderId;
+  final String senderUsername;
+  final String emoji;
+  const MessageReact({
+    required this.emoji,
+    required this.messageId,
+    required this.senderId,
+    required this.senderUsername,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'messageId': messageId,
+      'senderId': senderId,
+      'senderUsername': senderUsername,
+      'react': emoji,
+    };
   }
 }

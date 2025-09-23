@@ -82,9 +82,33 @@ class _ChatRoomState extends ConsumerState<ChatRoom> {
       };
     });
 
+    void reply(MessageData repliedToMsg) {
+      return ref
+          .read(chatroomProvider.notifier)
+          .sendMessage(
+            username: widget.username,
+            content: textController.text,
+            replyTo: ReplyTo(content: repliedToMsg.content, messageId: repliedToMsg.id),
+          );
+    }
+
+    void edit(MessageData repliedToMsg) {
+      return ref
+          .read(chatroomProvider.notifier)
+          .sendMessage(
+            username: widget.username,
+            content: textController.text,
+            replyTo: ReplyTo(content: repliedToMsg.content, messageId: repliedToMsg.id),
+          );
+    }
+
+    void delete(msg) {
+      ref.read(chatroomProvider.notifier).deleteMessage(msgId: msg.id, roomCode: widget.roomCode);
+      Navigator.pop(context);
+    }
+
     return MaterialApp(
       home: Scaffold(
-        resizeToAvoidBottomInset: true, // This is default, but being explicit
         appBar: AppBar(title: Text('Chat Room #${widget.roomCode}')),
         body: Column(
           children: [
@@ -102,7 +126,6 @@ class _ChatRoomState extends ConsumerState<ChatRoom> {
                         final message = value[index];
                         // Create or get existing key for this message
                         _messageKeys.putIfAbsent(message.id, () => GlobalKey());
-
                         return MessageTile(
                           key: _messageKeys[message.id],
                           message: message,
@@ -118,33 +141,9 @@ class _ChatRoomState extends ConsumerState<ChatRoom> {
                                 context: context,
                                 builder: (context) {
                                   return MessageOptionsMenu(
-                                    editMsg: (msg) {
-                                      ref
-                                          .read(chatroomProvider.notifier)
-                                          .updateMessage(
-                                            messageId: msg.id,
-                                            newContent: textController.text,
-                                          );
-                                    },
-                                    replyToMsg: (repliedToMsg) {
-                                      ref
-                                          .read(chatroomProvider.notifier)
-                                          .sendMessage(
-                                            username: widget.username,
-                                            content: textController.text,
-                                            replyTo: ReplyTo(
-                                              content: repliedToMsg.content,
-                                              messageId: repliedToMsg.id,
-                                            ),
-                                          );
-                                    },
-                                    deleteMessage: (msg) {
-                                      print("msg content to be deleted: ${msg.content}");
-                                      ref
-                                          .read(chatroomProvider.notifier)
-                                          .deleteMessage(msgId: msg.id, roomCode: widget.roomCode);
-                                      Navigator.pop(context);
-                                    },
+                                    editMsg: edit,
+                                    replyToMsg: reply,
+                                    deleteMessage: delete,
                                     username: widget.username,
                                     onShowToast: (InputToast toast) {
                                       setState(() => currentToast = toast);
