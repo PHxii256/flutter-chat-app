@@ -41,6 +41,7 @@ dependencies:
   collection: ^1.19.1
   flutter_riverpod: ^3.0.0
   riverpod_annotation: ^3.0.0
+  emoji_picker_flutter: ^4.3.0
 
 dev_dependencies:
   flutter_test:

@@ -207,7 +207,7 @@ class ChatRoomNotifier extends _$ChatRoomNotifier {
 
   Future<void> reactToMessage({
     required MessageData message,
-    required String senderId,
+    //required String senderId,
     required String senderUsername,
     String? emoji,
   }) async {
@@ -222,9 +222,13 @@ class ChatRoomNotifier extends _$ChatRoomNotifier {
       return;
     }
 
-    final userReactionsCount = message.reactions.where((r) => r.senderId == senderId).length;
+    //fix this and return to user id not username
+    final userReactionsCount = message.reactions
+        .where((r) => r.senderUsername == senderUsername)
+        .length;
     final existingReact = message.reactions.firstWhereOrNull(
-      (mReact) => mReact.emoji == emoji && mReact.senderId == senderId,
+      //fix
+      (mReact) => mReact.emoji == emoji && mReact.senderUsername == senderUsername,
     );
 
     // Check if user is trying to add a new reaction but already has max reactions
@@ -254,14 +258,17 @@ class ChatRoomNotifier extends _$ChatRoomNotifier {
     final updatedReactions = [...originalReactions];
 
     if (action == 'remove') {
-      updatedReactions.removeWhere((react) => react.emoji == emoji && react.senderId == senderId);
+      //fix
+      updatedReactions.removeWhere(
+        (react) => react.emoji == emoji && react.senderUsername == senderUsername,
+      );
       print('Optimistically removed reaction: $emoji from message ${message.id}');
     } else {
       updatedReactions.add(
         MessageReact(
           emoji: emoji,
           messageId: message.id,
-          senderId: senderId,
+          senderId: senderUsername,
           senderUsername: senderUsername,
         ),
       );
@@ -280,7 +287,7 @@ class ChatRoomNotifier extends _$ChatRoomNotifier {
           messageId: message.id,
           roomCode: roomCode,
           emoji: emoji,
-          senderId: senderId,
+          //senderId: senderId,
           senderUsername: senderUsername,
           action: action,
         );

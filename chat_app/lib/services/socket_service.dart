@@ -166,7 +166,7 @@ class SocketService {
     required String messageId,
     required String roomCode,
     required String emoji,
-    required String senderId,
+    //required String senderId,
     required String senderUsername,
     required String action, // 'add' or 'remove'
   }) {
@@ -175,7 +175,7 @@ class SocketService {
         "messageId": messageId,
         "roomCode": roomCode,
         "emoji": emoji,
-        "senderId": senderId,
+        //"senderId": senderId,
         "senderUsername": senderUsername,
         "action": action,
         "timestamp": DateTime.now().toIso8601String(),

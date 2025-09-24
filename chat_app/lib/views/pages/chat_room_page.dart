@@ -7,6 +7,7 @@ import 'package:chat_app/views/components/message_options_menu.dart';
 import 'package:chat_app/views/components/message_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 
 class ChatRoom extends ConsumerStatefulWidget {
   const ChatRoom({super.key, this.username = "default user", this.roomCode = "general"});
@@ -23,6 +24,11 @@ class _ChatRoomState extends ConsumerState<ChatRoom> {
   final ScrollController scrollController = ScrollController();
   final TextEditingController textController = TextEditingController();
   InputToast? currentToast;
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   void dispose() {
@@ -82,8 +88,20 @@ class _ChatRoomState extends ConsumerState<ChatRoom> {
       };
     });
 
+    void addReact(MessageData msg, String emoji) {
+      ref
+          .read(chatroomProvider.notifier)
+          .reactToMessage(message: msg, senderUsername: widget.username, emoji: emoji);
+    }
+
+    void removeReact(MessageData msg, String emoji) {
+      ref
+          .read(chatroomProvider.notifier)
+          .reactToMessage(message: msg, senderUsername: widget.username, emoji: emoji);
+    }
+
     void reply(MessageData repliedToMsg) {
-      return ref
+      ref
           .read(chatroomProvider.notifier)
           .sendMessage(
             username: widget.username,
@@ -93,7 +111,7 @@ class _ChatRoomState extends ConsumerState<ChatRoom> {
     }
 
     void edit(MessageData repliedToMsg) {
-      return ref
+      ref
           .read(chatroomProvider.notifier)
           .sendMessage(
             username: widget.username,
@@ -105,6 +123,44 @@ class _ChatRoomState extends ConsumerState<ChatRoom> {
     void delete(msg) {
       ref.read(chatroomProvider.notifier).deleteMessage(msgId: msg.id, roomCode: widget.roomCode);
       Navigator.pop(context);
+    }
+
+    void showEmojiPicker(MessageData message) {
+      showModalBottomSheet(
+        context: context,
+        builder: (BuildContext context) {
+          return SizedBox(
+            height: 300,
+            child: EmojiPicker(
+              onEmojiSelected: (Category? category, Emoji emoji) {
+                addReact(message, emoji.emoji);
+                Navigator.pop(context); // Close emoji picker
+              },
+              config: Config(
+                height: 256,
+                checkPlatformCompatibility: true,
+                emojiViewConfig: EmojiViewConfig(
+                  emojiSizeMax: 32.0,
+                  verticalSpacing: 0,
+                  horizontalSpacing: 0,
+                  gridPadding: EdgeInsets.zero,
+                  backgroundColor: const Color(0xFFF2F2F2),
+                  columns: 7,
+                  noRecents: const Text(
+                    'No Recents',
+                    style: TextStyle(fontSize: 20, color: Colors.black26),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                skinToneConfig: const SkinToneConfig(),
+                categoryViewConfig: const CategoryViewConfig(),
+                bottomActionBarConfig: const BottomActionBarConfig(),
+                searchViewConfig: const SearchViewConfig(),
+              ),
+            ),
+          );
+        },
+      );
     }
 
     return MaterialApp(
@@ -127,9 +183,12 @@ class _ChatRoomState extends ConsumerState<ChatRoom> {
                         // Create or get existing key for this message
                         _messageKeys.putIfAbsent(message.id, () => GlobalKey());
                         return MessageTile(
+                          currentUsername: widget.username,
+                          roomCode: widget.roomCode,
                           key: _messageKeys[message.id],
                           message: message,
                           index: index,
+                          onReactionRemove: removeReact,
                           onTap: () {
                             if (value[index].replyTo == null) return;
                             final id = value[index].replyTo!.messageId;
@@ -139,8 +198,9 @@ class _ChatRoomState extends ConsumerState<ChatRoom> {
                             if (mounted && value[index].senderId != "Server") {
                               showModalBottomSheet(
                                 context: context,
-                                builder: (context) {
+                                builder: (modalContext) {
                                   return MessageOptionsMenu(
+                                    reactToMsg: addReact,
                                     editMsg: edit,
                                     replyToMsg: reply,
                                     deleteMessage: delete,
@@ -153,6 +213,7 @@ class _ChatRoomState extends ConsumerState<ChatRoom> {
                                     },
                                     textController: textController,
                                     message: value[index],
+                                    onShowEmojiPicker: showEmojiPicker, // Add emoji picker callback
                                   );
                                 },
                               );

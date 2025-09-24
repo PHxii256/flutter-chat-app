@@ -2,21 +2,28 @@
 
 import 'package:chat_app/models/message_data.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
-class MessageTile extends StatefulWidget {
+class MessageTile extends ConsumerStatefulWidget {
+  final String roomCode;
+  final String currentUsername;
   final MessageData message;
   final int index;
   final VoidCallback onLongPress;
   final VoidCallback onTap;
+  final Function(MessageData message, String emoji)? onReactionRemove;
 
   const MessageTile({
     super.key,
+    required this.roomCode,
+    required this.currentUsername,
     required this.message,
     required this.index,
     required this.onLongPress,
     required this.onTap,
+    this.onReactionRemove,
   });
 
   /// Static method to trigger highlight on a MessageTile via GlobalKey
@@ -28,10 +35,10 @@ class MessageTile extends StatefulWidget {
   }
 
   @override
-  State<MessageTile> createState() => _MessageTileState();
+  ConsumerState<MessageTile> createState() => _MessageTileState();
 }
 
-class _MessageTileState extends State<MessageTile> {
+class _MessageTileState extends ConsumerState<MessageTile> {
   int _highlightOpacity = 0;
 
   void highlight() {
@@ -49,7 +56,7 @@ class _MessageTileState extends State<MessageTile> {
     });
   }
 
-  String? _getSender() {
+  String? _getMessage() {
     if (widget.message.senderId == 'Server') {
       return widget.message.content;
     } else {
@@ -61,40 +68,160 @@ class _MessageTileState extends State<MessageTile> {
     return DateFormat('h:mm a').format(widget.message.createdAt);
   }
 
+  Widget _buildReactions() {
+    if (widget.message.reactions.isEmpty) {
+      return Container();
+    }
+
+    // Group reactions by emoji
+    Map<String, List<MessageReact>> reactionGroups = {};
+    for (var reaction in widget.message.reactions) {
+      reactionGroups.putIfAbsent(reaction.emoji, () => []).add(reaction);
+    }
+
+    return Wrap(
+      spacing: 4,
+      children: reactionGroups.entries.map((entry) {
+        final emoji = entry.key;
+        final reactions = entry.value;
+        final count = reactions.length;
+        final hasUserReacted = reactions.any((r) => r.senderUsername == widget.currentUsername);
+
+        return InkWell(
+          onTap: () {
+            print('Reaction tapped: $emoji, hasUserReacted: $hasUserReacted');
+            // Only allow removing own reactions
+            if (hasUserReacted && widget.onReactionRemove != null) {
+              print('Calling onReactionRemove for $emoji');
+              widget.onReactionRemove!(widget.message, emoji);
+            } else {
+              print(
+                'Cannot remove reaction: hasUserReacted=$hasUserReacted, callback=${widget.onReactionRemove != null}',
+              );
+            }
+          },
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: hasUserReacted
+                  ? Theme.of(context).primaryColor.withAlpha(50)
+                  : Theme.of(context).colorScheme.surface,
+              border: Border.all(
+                color: hasUserReacted
+                    ? Theme.of(context).primaryColor
+                    : Theme.of(context).colorScheme.outline,
+                width: 1,
+              ),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(emoji, style: TextStyle(fontSize: 13)),
+                SizedBox(width: 2),
+                Text(
+                  count.toString(),
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: hasUserReacted
+                        ? Theme.of(context).primaryColor
+                        : Theme.of(context).colorScheme.onSurface,
+                    fontWeight: hasUserReacted ? FontWeight.bold : FontWeight.normal,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 500),
       curve: Curves.easeOut,
       decoration: BoxDecoration(color: Theme.of(context).primaryColor.withAlpha(_highlightOpacity)),
-      child: ListTile(
-        leading: Text(_getMessageTime()),
-        title: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            widget.message.replyTo != null
-                ? Positioned(
-                    bottom: 21,
-                    left: 4,
-                    child: Row(
+      child: InkWell(
+        onTap: widget.onTap,
+        onLongPress: widget.onLongPress,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(16, 8, 16, 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Main message row - timestamp and message content always aligned
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: [
+                  // Time column - fixed width for consistent alignment
+                  SizedBox(
+                    width: 60,
+                    child: Text(
+                      _getMessageTime(),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                      ),
+                    ),
+                  ),
+                  // Message content column
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Transform.flip(
-                          flipX: true,
-                          child: Icon(Symbols.reply_rounded, size: 13, fontWeight: FontWeight.bold),
-                        ),
+                        // Reply indicator row (visible/hidden but maintains structure)
+                        if (widget.message.replyTo != null)
+                          Padding(
+                            padding: EdgeInsets.only(bottom: 4),
+                            child: Row(
+                              children: [
+                                Transform.flip(
+                                  flipX: true,
+                                  child: Icon(
+                                    Symbols.reply_rounded,
+                                    size: 13,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurface.withValues(alpha: 0.6),
+                                    weight: 600,
+                                  ),
+                                ),
+                                SizedBox(width: 4),
+                                Flexible(
+                                  child: Text(
+                                    "Replying to: \"${widget.message.replyTo!.content}\"",
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontStyle: FontStyle.italic,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurface.withValues(alpha: 0.6),
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        // Main message content
                         Text(
-                          "Repling to: \"${widget.message.replyTo!.content}\"",
-                          style: TextStyle(fontSize: 13, fontStyle: FontStyle.italic),
+                          _getMessage() ?? 'anon',
+                          style: Theme.of(context).textTheme.bodyMedium,
                         ),
+                        // Reactions row (part of message content column)
+                        if (widget.message.reactions.isNotEmpty)
+                          Padding(padding: EdgeInsets.only(top: 4), child: _buildReactions()),
                       ],
                     ),
-                  )
-                : Container(),
-            Text(_getSender() ?? 'anon'),
-          ],
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
-        onLongPress: widget.onLongPress,
-        onTap: widget.onTap,
       ),
     );
   }
