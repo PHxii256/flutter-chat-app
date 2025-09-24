@@ -152,6 +152,36 @@ class _MessageTileState extends ConsumerState<MessageTile> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Reply indicator (if exists) - full width above everything
+              if (widget.message.replyTo != null)
+                Padding(
+                  padding: EdgeInsets.only(left: 60, bottom: 4), // Align with message content
+                  child: Row(
+                    children: [
+                      Transform.flip(
+                        flipX: true,
+                        child: Icon(
+                          Symbols.reply_rounded,
+                          size: 13,
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                          weight: 600,
+                        ),
+                      ),
+                      SizedBox(width: 4),
+                      Flexible(
+                        child: Text(
+                          "Replying to: \"${widget.message.replyTo!.content}\"",
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontStyle: FontStyle.italic,
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               // Main message row - timestamp and message content always aligned
               Row(
                 crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -167,58 +197,21 @@ class _MessageTileState extends ConsumerState<MessageTile> {
                       ),
                     ),
                   ),
-                  // Message content column
+                  // Message content
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Reply indicator row (visible/hidden but maintains structure)
-                        if (widget.message.replyTo != null)
-                          Padding(
-                            padding: EdgeInsets.only(bottom: 4),
-                            child: Row(
-                              children: [
-                                Transform.flip(
-                                  flipX: true,
-                                  child: Icon(
-                                    Symbols.reply_rounded,
-                                    size: 13,
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSurface.withValues(alpha: 0.6),
-                                    weight: 600,
-                                  ),
-                                ),
-                                SizedBox(width: 4),
-                                Flexible(
-                                  child: Text(
-                                    "Replying to: \"${widget.message.replyTo!.content}\"",
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontStyle: FontStyle.italic,
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onSurface.withValues(alpha: 0.6),
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        // Main message content
-                        Text(
-                          _getMessage() ?? 'anon',
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                        // Reactions row (part of message content column)
-                        if (widget.message.reactions.isNotEmpty)
-                          Padding(padding: EdgeInsets.only(top: 4), child: _buildReactions()),
-                      ],
+                    child: Text(
+                      _getMessage() ?? 'anon',
+                      style: Theme.of(context).textTheme.bodyLarge,
                     ),
                   ),
                 ],
               ),
+              // Reactions row (if any)
+              if (widget.message.reactions.isNotEmpty)
+                Padding(
+                  padding: EdgeInsets.only(left: 60, top: 4), // Align with message content
+                  child: _buildReactions(),
+                ),
             ],
           ),
         ),
