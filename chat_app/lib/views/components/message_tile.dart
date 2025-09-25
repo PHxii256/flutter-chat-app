@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_print
 
 import 'package:chat_app/models/message_data.dart';
+import 'package:chat_app/view_models/chat_room_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -91,14 +92,18 @@ class _MessageTileState extends ConsumerState<MessageTile> {
           onTap: () {
             print('Reaction tapped: $emoji, hasUserReacted: $hasUserReacted');
             // Only allow removing own reactions
-            if (hasUserReacted && widget.onReactionRemove != null) {
-              print('Calling onReactionRemove for $emoji');
-              widget.onReactionRemove!(widget.message, emoji);
-            } else {
-              print(
-                'Cannot remove reaction: hasUserReacted=$hasUserReacted, callback=${widget.onReactionRemove != null}',
-              );
-            }
+            ref
+                .read(
+                  chatRoomProvider(
+                    roomCode: widget.roomCode,
+                    username: widget.currentUsername,
+                  ).notifier,
+                )
+                .reactToMessage(
+                  message: widget.message,
+                  senderUsername: widget.currentUsername,
+                  emoji: emoji,
+                );
           },
           borderRadius: BorderRadius.circular(12),
           child: Container(

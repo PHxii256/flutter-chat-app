@@ -34,7 +34,7 @@ class MessageOptionsMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 200,
+      height: isOwnMessage(message) ? 250 : 150,
       child: Center(
         child: ListView(
           padding: EdgeInsets.all(16),

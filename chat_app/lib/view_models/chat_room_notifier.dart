@@ -67,6 +67,27 @@ class ChatRoomNotifier extends _$ChatRoomNotifier {
     }
   }
 
+  // Method to refresh state from server (useful when switching users)
+  Future<void> refreshFromServer() async {
+    try {
+      print('Refreshing state from server for room: $roomCode');
+      final freshHistory = await fetchChatHistory(roomCode);
+      state = AsyncValue.data(freshHistory);
+      print('State refreshed from server - ${freshHistory.length} messages loaded');
+
+      // Log reactions for debugging
+      for (var msg in freshHistory) {
+        if (msg.reactions.isNotEmpty) {
+          print(
+            'Message ${msg.id} has ${msg.reactions.length} reactions: ${msg.reactions.map((r) => '${r.emoji} by ${r.senderUsername}').join(', ')}',
+          );
+        }
+      }
+    } catch (e) {
+      print('Error refreshing from server: $e');
+    }
+  }
+
   void _parseReceivedMsg(dynamic msg) {
     try {
       if (msg == null) return;
@@ -203,31 +224,23 @@ class ChatRoomNotifier extends _$ChatRoomNotifier {
   }
 
   static const int maxReactionsPerMessage = 50;
-  static const int maxReactionsPerUserPerMessage = 5;
+  static const int maxReactionsPerUserPerMessage = 10;
 
   Future<void> reactToMessage({
     required MessageData message,
-    //required String senderId,
     required String senderUsername,
-    String? emoji,
+    required String emoji,
   }) async {
-    if (emoji == null || emoji.trim().isEmpty) {
-      print('Invalid emoji provided');
-      return;
-    }
-
     // Validation checks
     if (message.reactions.length >= maxReactionsPerMessage) {
       print('Maximum reactions per message reached');
       return;
     }
 
-    //fix this and return to user id not username
     final userReactionsCount = message.reactions
         .where((r) => r.senderUsername == senderUsername)
         .length;
     final existingReact = message.reactions.firstWhereOrNull(
-      //fix
       (mReact) => mReact.emoji == emoji && mReact.senderUsername == senderUsername,
     );
 
@@ -250,35 +263,7 @@ class ChatRoomNotifier extends _$ChatRoomNotifier {
       return;
     }
 
-    final originalMessage = messages[messageIndex];
-    final originalReactions = [...originalMessage.reactions];
-
-    // Determine action and update local state optimistically
     final String action = existingReact != null ? 'remove' : 'add';
-    final updatedReactions = [...originalReactions];
-
-    if (action == 'remove') {
-      //fix
-      updatedReactions.removeWhere(
-        (react) => react.emoji == emoji && react.senderUsername == senderUsername,
-      );
-      print('Optimistically removed reaction: $emoji from message ${message.id}');
-    } else {
-      updatedReactions.add(
-        MessageReact(
-          emoji: emoji,
-          messageId: message.id,
-          senderId: senderUsername,
-          senderUsername: senderUsername,
-        ),
-      );
-      print('Optimistically added reaction: $emoji to message ${message.id}');
-    }
-
-    // Update local state immediately (optimistic update)
-    final updatedMessage = originalMessage.copyWith(reactions: updatedReactions);
-    messages[messageIndex] = updatedMessage;
-    state = AsyncValue.data(messages);
 
     // Send to server and handle potential failure
     try {
@@ -287,28 +272,19 @@ class ChatRoomNotifier extends _$ChatRoomNotifier {
           messageId: message.id,
           roomCode: roomCode,
           emoji: emoji,
-          //senderId: senderId,
           senderUsername: senderUsername,
           action: action,
         );
+
+        // After sending reaction, refresh state from server to ensure UI sync
+        // This is especially important when switching users
+        await Future.delayed(Duration(milliseconds: 100)); // Small delay for server processing
+        await refreshFromServer();
       } else {
         throw Exception('Socket not connected');
       }
     } catch (e) {
       print('Failed to sync reaction with server: $e');
-
-      // Rollback local state on server failure
-      final rollbackMessage = originalMessage.copyWith(reactions: originalReactions);
-      final rollbackMessages = [...state.value!];
-      final rollbackIndex = rollbackMessages.indexWhere((m) => m.id == message.id);
-
-      if (rollbackIndex != -1) {
-        rollbackMessages[rollbackIndex] = rollbackMessage;
-        state = AsyncValue.data(rollbackMessages);
-        print('Rolled back reaction due to server error');
-      }
-
-      // Could also show user-facing error here
       rethrow; // Let calling code handle user notification
     }
   }

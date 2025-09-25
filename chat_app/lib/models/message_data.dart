@@ -46,7 +46,7 @@ class MessageData {
           msgReacts.add(
             MessageReact(
               emoji: react["emoji"],
-              messageId: react["messageId"],
+              messageId: json['_id'],
               senderId: react["senderId"],
               senderUsername: react["senderUsername"],
             ),
