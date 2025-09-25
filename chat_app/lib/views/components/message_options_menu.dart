@@ -6,11 +6,12 @@ import 'package:flutter/material.dart';
 class MessageOptionsMenu extends StatelessWidget {
   final Function(MessageData msg) deleteMessage;
   final Function(MessageData msg) editMsg;
-  final Function(MessageData msg, String emoji) reactToMsg;
   final Function(MessageData repliedToMsg) replyToMsg;
   final Function(InputToast toast) onShowToast;
   final Function() onCloseToast;
-  final Function(MessageData message) onShowEmojiPicker; // Add callback for emoji picker
+  final Function(MessageData message) onShowReactions;
+
+  final Function(MessageData message) onShowEmojiPicker;
   final TextEditingController textController;
   final MessageData message;
   final String username;
@@ -25,8 +26,8 @@ class MessageOptionsMenu extends StatelessWidget {
     required this.message,
     required this.editMsg,
     required this.replyToMsg,
-    required this.reactToMsg,
-    required this.onShowEmojiPicker, // Add to constructor
+    required this.onShowEmojiPicker,
+    required this.onShowReactions,
   });
 
   bool isOwnMessage(MessageData msg) => msg.username == username;
@@ -39,12 +40,29 @@ class MessageOptionsMenu extends StatelessWidget {
         child: ListView(
           padding: EdgeInsets.all(16),
           children: [
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context); // Close options menu first
-                onShowEmojiPicker(message); // Call parent callback
-              },
-              child: Text('React To Message'),
+            Row(
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context); // Close options menu first
+                      onShowEmojiPicker(message); // Call parent callback
+                    },
+                    child: Text('React To Message'),
+                  ),
+                ),
+                SizedBox(width: 6),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context); // Close options menu first
+                      onShowReactions(message); // Call parent callback
+                    },
+                    child: Text('Show Reactions'),
+                  ),
+                ),
+              ],
             ),
             ElevatedButton(
               onPressed: () {

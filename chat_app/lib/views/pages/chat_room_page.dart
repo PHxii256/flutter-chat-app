@@ -5,6 +5,7 @@ import 'package:chat_app/views/components/chat_screen_input.dart';
 import 'package:chat_app/views/components/input_toast.dart';
 import 'package:chat_app/views/components/message_options_menu.dart';
 import 'package:chat_app/views/components/message_tile.dart';
+import 'package:chat_app/views/components/reactions_viewer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
@@ -157,11 +158,15 @@ class _ChatRoomState extends ConsumerState<ChatRoom> {
 
     void showEmojiPicker(MessageData message) {
       showModalBottomSheet(
+        isScrollControlled: true,
         context: context,
         builder: (BuildContext context) {
           return SizedBox(
             height: 300,
             child: EmojiPicker(
+              onBackspacePressed: () {
+                Navigator.pop(context); // Close emoji picker
+              },
               onEmojiSelected: (Category? category, Emoji emoji) {
                 addReact(message, emoji.emoji);
                 Navigator.pop(context); // Close emoji picker
@@ -170,12 +175,12 @@ class _ChatRoomState extends ConsumerState<ChatRoom> {
                 height: 256,
                 checkPlatformCompatibility: true,
                 emojiViewConfig: EmojiViewConfig(
-                  emojiSizeMax: 32.0,
+                  emojiSizeMax: 26,
                   verticalSpacing: 0,
                   horizontalSpacing: 0,
                   gridPadding: EdgeInsets.zero,
-                  backgroundColor: const Color(0xFFF2F2F2),
-                  columns: 7,
+                  columns: 8,
+                  recentsLimit: 40,
                   noRecents: const Text(
                     'No Recents',
                     style: TextStyle(fontSize: 20, color: Colors.black26),
@@ -183,12 +188,25 @@ class _ChatRoomState extends ConsumerState<ChatRoom> {
                   ),
                 ),
                 skinToneConfig: const SkinToneConfig(),
-                categoryViewConfig: const CategoryViewConfig(),
-                bottomActionBarConfig: const BottomActionBarConfig(),
+                categoryViewConfig: CategoryViewConfig(
+                  iconColorSelected: Theme.of(context).primaryColor,
+                  indicatorColor: Theme.of(context).primaryColor,
+                ),
+                bottomActionBarConfig: BottomActionBarConfig(enabled: false),
                 searchViewConfig: const SearchViewConfig(),
               ),
             ),
           );
+        },
+      );
+    }
+
+    void showReactions(MessageData message) {
+      showModalBottomSheet(
+        isScrollControlled: true,
+        context: context,
+        builder: (BuildContext context) {
+          return ReactionsViewer(message: message);
         },
       );
     }
@@ -230,7 +248,6 @@ class _ChatRoomState extends ConsumerState<ChatRoom> {
                                 context: context,
                                 builder: (modalContext) {
                                   return MessageOptionsMenu(
-                                    reactToMsg: addReact,
                                     editMsg: edit,
                                     replyToMsg: reply,
                                     deleteMessage: delete,
@@ -243,7 +260,8 @@ class _ChatRoomState extends ConsumerState<ChatRoom> {
                                     },
                                     textController: textController,
                                     message: value[index],
-                                    onShowEmojiPicker: showEmojiPicker, // Add emoji picker callback
+                                    onShowEmojiPicker: showEmojiPicker,
+                                    onShowReactions: showReactions,
                                   );
                                 },
                               );
