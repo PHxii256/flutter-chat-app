@@ -177,9 +177,9 @@ class ChatRoomNotifier extends _$ChatRoomNotifier {
           final String senderUsername = decodedMsg["senderUsername"];
 
           if (action == "add") {
-            // Add reaction if not already present
+            // Add reaction only if not already present (avoid duplicates from optimistic updates)
             final existingReactionIndex = updatedReactions.indexWhere(
-              (r) => r.emoji == emoji && r.senderId == senderId,
+              (r) => r.emoji == emoji && r.senderUsername == senderUsername,
             );
 
             if (existingReactionIndex == -1) {
@@ -191,10 +191,21 @@ class ChatRoomNotifier extends _$ChatRoomNotifier {
                   senderUsername: senderUsername,
                 ),
               );
+            } else {
+              print('Reaction already exists (likely from optimistic update), skipping');
+              return; // No need to update state if reaction already exists
             }
           } else if (action == "remove") {
-            // Remove reaction
-            updatedReactions.removeWhere((r) => r.emoji == emoji && r.senderId == senderId);
+            // Remove reaction - this should work for both optimistic and socket updates
+            final initialCount = updatedReactions.length;
+            updatedReactions.removeWhere(
+              (r) => r.emoji == emoji && r.senderUsername == senderUsername,
+            );
+
+            if (updatedReactions.length == initialCount) {
+              print('Reaction to remove not found (likely already removed optimistically)');
+              return; // No need to update state if nothing was removed
+            }
           }
 
           final updatedMessage = message.copyWith(reactions: updatedReactions);
@@ -268,6 +279,30 @@ class ChatRoomNotifier extends _$ChatRoomNotifier {
     // Send to server and handle potential failure
     try {
       if (_chatroomService.isConnected) {
+        // Optimistically update local state first for immediate UI feedback
+        final updatedReactions = [...message.reactions];
+
+        if (action == "add") {
+          updatedReactions.add(
+            MessageReact(
+              emoji: emoji,
+              messageId: message.id,
+              senderId: senderUsername, // Using username as ID for simplicity
+              senderUsername: senderUsername,
+            ),
+          );
+        } else {
+          updatedReactions.removeWhere(
+            (r) => r.emoji == emoji && r.senderUsername == senderUsername,
+          );
+        }
+
+        final updatedMessage = message.copyWith(reactions: updatedReactions);
+        final newMessages = [...messages];
+        newMessages[messageIndex] = updatedMessage;
+        state = AsyncValue.data(newMessages);
+
+        // Then send to server for synchronization with other users
         _chatroomService.sendReaction(
           messageId: message.id,
           roomCode: roomCode,
@@ -275,11 +310,6 @@ class ChatRoomNotifier extends _$ChatRoomNotifier {
           senderUsername: senderUsername,
           action: action,
         );
-
-        // After sending reaction, refresh state from server to ensure UI sync
-        // This is especially important when switching users
-        await Future.delayed(Duration(milliseconds: 100)); // Small delay for server processing
-        await refreshFromServer();
       } else {
         throw Exception('Socket not connected');
       }
