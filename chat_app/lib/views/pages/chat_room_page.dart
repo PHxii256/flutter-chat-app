@@ -1,4 +1,5 @@
 // ignore_for_file: avoid_print
+import 'package:chat_app/generated/l10n.dart';
 import 'package:chat_app/models/message_data.dart';
 import 'package:chat_app/view_models/chat_room_notifier.dart';
 import 'package:chat_app/views/components/chat_screen_input.dart';
@@ -105,6 +106,7 @@ class _ChatRoomState extends ConsumerState<ChatRoom> {
 
   @override
   Widget build(BuildContext context) {
+    final t = S.of(context);
     final chatroomProvider = chatRoomProvider(roomCode: widget.roomCode, username: widget.username);
     final messages = ref.watch(chatroomProvider);
 
@@ -181,8 +183,8 @@ class _ChatRoomState extends ConsumerState<ChatRoom> {
                   gridPadding: EdgeInsets.zero,
                   columns: 8,
                   recentsLimit: 40,
-                  noRecents: const Text(
-                    'No Recents',
+                  noRecents: Text(
+                    t.noRecents,
                     style: TextStyle(fontSize: 20, color: Colors.black26),
                     textAlign: TextAlign.center,
                   ),
@@ -211,89 +213,83 @@ class _ChatRoomState extends ConsumerState<ChatRoom> {
       );
     }
 
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(title: Text('Chat Room #${widget.roomCode}')),
-        body: Column(
-          children: [
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(8.0, 8.0, 8.0, 0.0),
-                child: switch (messages) {
-                  AsyncValue(:final value?) => Scrollbar(
+    return Scaffold(
+      appBar: AppBar(title: Text(t.chatRoomTitle(widget.roomCode))),
+      body: Column(
+        children: [
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(8.0, 8.0, 8.0, 0.0),
+              child: switch (messages) {
+                AsyncValue(:final value?) => Scrollbar(
+                  controller: scrollController,
+                  child: ListView.builder(
                     controller: scrollController,
-                    child: ListView.builder(
-                      controller: scrollController,
-                      padding: EdgeInsets.zero, // Remove default padding
-                      itemCount: value.length,
-                      itemBuilder: (context, index) {
-                        final message = value[index];
-                        // Create or get existing key for this message
-                        _messageKeys.putIfAbsent(message.id, () => GlobalKey());
-                        return MessageTile(
-                          currentUsername: widget.username,
-                          roomCode: widget.roomCode,
-                          key: _messageKeys[message.id],
-                          message: message,
-                          index: index,
-                          onReactionRemove: removeReact,
-                          onTap: () {
-                            if (value[index].replyTo == null) return;
-                            final id = value[index].replyTo!.messageId;
-                            jumpToMessageById(id);
-                          },
-                          onLongPress: () {
-                            if (mounted && value[index].senderId != "Server") {
-                              showModalBottomSheet(
-                                context: context,
-                                builder: (modalContext) {
-                                  return MessageOptionsMenu(
-                                    editMsg: edit,
-                                    replyToMsg: reply,
-                                    deleteMessage: delete,
-                                    username: widget.username,
-                                    onShowToast: (InputToast toast) {
-                                      setState(() => currentToast = toast);
-                                    },
-                                    onCloseToast: () {
-                                      setState(() => currentToast = null);
-                                    },
-                                    textController: textController,
-                                    message: value[index],
-                                    onShowEmojiPicker: showEmojiPicker,
-                                    onShowReactions: showReactions,
-                                  );
-                                },
-                              );
-                            }
-                          },
-                        );
-                      },
-                    ),
+                    padding: EdgeInsets.zero, // Remove default padding
+                    itemCount: value.length,
+                    itemBuilder: (context, index) {
+                      final message = value[index];
+                      // Create or get existing key for this message
+                      _messageKeys.putIfAbsent(message.id, () => GlobalKey());
+                      return MessageTile(
+                        currentUsername: widget.username,
+                        roomCode: widget.roomCode,
+                        key: _messageKeys[message.id],
+                        message: message,
+                        index: index,
+                        onReactionRemove: removeReact,
+                        onTap: () {
+                          if (value[index].replyTo == null) return;
+                          final id = value[index].replyTo!.messageId;
+                          jumpToMessageById(id);
+                        },
+                        onLongPress: () {
+                          if (mounted && value[index].senderId != "Server") {
+                            showModalBottomSheet(
+                              context: context,
+                              builder: (modalContext) {
+                                return MessageOptionsMenu(
+                                  editMsg: edit,
+                                  replyToMsg: reply,
+                                  deleteMessage: delete,
+                                  username: widget.username,
+                                  onShowToast: (InputToast toast) {
+                                    setState(() => currentToast = toast);
+                                  },
+                                  onCloseToast: () {
+                                    setState(() => currentToast = null);
+                                  },
+                                  textController: textController,
+                                  message: value[index],
+                                  onShowEmojiPicker: showEmojiPicker,
+                                  onShowReactions: showReactions,
+                                );
+                              },
+                            );
+                          }
+                        },
+                      );
+                    },
                   ),
-                  // If "error" is non-null, it means that the operation failed.
-                  AsyncValue(error: != null) => Text('Error: ${messages.error}'),
-                  // If we're neither in data state nor in error state, then we're in loading state.
-                  AsyncValue() => Center(
-                    child: SizedBox(
-                      width: 30,
-                      height: 30,
-                      child: const CircularProgressIndicator(),
-                    ),
-                  ),
-                },
-              ),
+                ),
+                // If "error" is non-null, it means that the operation failed.
+                AsyncValue(error: != null) => Text(t.errorMessage(messages.error.toString())),
+                // If we're neither in data state nor in error state, then we're in loading state.
+                AsyncValue() => Center(
+                  child: SizedBox(width: 30, height: 30, child: const CircularProgressIndicator()),
+                ),
+              },
             ),
-            ChatScreenInput(
-              chatRoomProvider: chatroomProvider,
-              textController: textController,
-              username: widget.username,
-              roomCode: widget.roomCode,
-              getToast: () => currentToast,
-              closeToast: () => currentToast = null,
-            ),
-          ],
-        ),
+          ),
+          ChatScreenInput(
+            chatRoomProvider: chatroomProvider,
+            textController: textController,
+            username: widget.username,
+            roomCode: widget.roomCode,
+            getToast: () => currentToast,
+            closeToast: () => currentToast = null,
+          ),
+        ],
       ),
     );
   }

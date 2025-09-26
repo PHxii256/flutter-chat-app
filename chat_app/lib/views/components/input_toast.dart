@@ -39,12 +39,13 @@ class ReplyToast extends InputToast {
   final MessageData messageRepliedTo;
   final Function sendReply;
 
-  ReplyToast({
+  const ReplyToast({
     super.key,
     required super.closeCallback,
     required this.sendReply,
     required this.messageRepliedTo,
-  }) : super(message: "Reply To ${messageRepliedTo.username}", icon: Symbols.reply);
+    required String replyToText,
+  }) : super(message: replyToText, icon: Symbols.reply);
 
   @override
   void performAction() => sendReply();
@@ -53,8 +54,12 @@ class ReplyToast extends InputToast {
 class EditToast extends InputToast {
   final Function sendEdit;
 
-  const EditToast({super.key, required super.closeCallback, required this.sendEdit})
-    : super(message: "Editing Message", icon: Symbols.edit);
+  const EditToast({
+    super.key,
+    required super.closeCallback,
+    required this.sendEdit,
+    required String editingText,
+  }) : super(message: editingText, icon: Symbols.edit);
 
   @override
   void performAction() => sendEdit();

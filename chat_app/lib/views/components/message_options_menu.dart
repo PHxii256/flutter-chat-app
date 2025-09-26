@@ -1,4 +1,5 @@
 // ignore_for_file: avoid_print
+import 'package:chat_app/generated/l10n.dart';
 import 'package:chat_app/models/message_data.dart';
 import 'package:chat_app/views/components/input_toast.dart';
 import 'package:flutter/material.dart';
@@ -34,6 +35,7 @@ class MessageOptionsMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = S.of(context);
     return SizedBox(
       height: isOwnMessage(message) ? 250 : 150,
       child: Center(
@@ -49,7 +51,7 @@ class MessageOptionsMenu extends StatelessWidget {
                       Navigator.pop(context); // Close options menu first
                       onShowEmojiPicker(message); // Call parent callback
                     },
-                    child: Text('React To Message'),
+                    child: Text(t.reactToMessage),
                   ),
                 ),
                 SizedBox(width: 6),
@@ -59,7 +61,7 @@ class MessageOptionsMenu extends StatelessWidget {
                       Navigator.pop(context); // Close options menu first
                       onShowReactions(message); // Call parent callback
                     },
-                    child: Text('Show Reactions'),
+                    child: Text(t.showReactions),
                   ),
                 ),
               ],
@@ -71,11 +73,12 @@ class MessageOptionsMenu extends StatelessWidget {
                     closeCallback: onCloseToast,
                     messageRepliedTo: message,
                     sendReply: () => replyToMsg(message),
+                    replyToText: t.replyTo(message.username),
                   ),
                 );
                 Navigator.pop(context);
               },
-              child: Text('Reply To Message'),
+              child: Text(t.replyToMessage),
             ),
             isOwnMessage(message)
                 ? Column(
@@ -87,16 +90,17 @@ class MessageOptionsMenu extends StatelessWidget {
                             EditToast(
                               closeCallback: onCloseToast,
                               sendEdit: () => editMsg(message),
+                              editingText: t.editingMessage,
                             ),
                           );
                           textController.text = message.content;
                           Navigator.pop(context);
                         },
-                        child: Text('Edit Message'),
+                        child: Text(t.editMessage),
                       ),
                       ElevatedButton(
                         onPressed: () => deleteMessage(message),
-                        child: Text('Delete Message', style: TextStyle(color: Colors.red)),
+                        child: Text(t.deleteMessage, style: TextStyle(color: Colors.red)),
                       ),
                     ],
                   )

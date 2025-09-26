@@ -1,5 +1,6 @@
 // ignore_for_file: avoid_print
 
+import 'package:chat_app/generated/l10n.dart';
 import 'package:chat_app/models/message_data.dart';
 import 'package:chat_app/view_models/chat_room_notifier.dart';
 import 'package:flutter/material.dart';
@@ -67,6 +68,13 @@ class _MessageTileState extends ConsumerState<MessageTile> {
 
   String _getMessageTime() {
     return DateFormat('h:mm a').format(widget.message.createdAt);
+  }
+
+  String _clampText(String text, int maxLength) {
+    if (text.length <= maxLength) {
+      return text;
+    }
+    return '${text.substring(0, maxLength)}...';
   }
 
   Widget _buildReactions() {
@@ -145,6 +153,10 @@ class _MessageTileState extends ConsumerState<MessageTile> {
 
   @override
   Widget build(BuildContext context) {
+    final t = S.of(context);
+
+    //here
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 500),
       curve: Curves.easeOut,
@@ -175,7 +187,7 @@ class _MessageTileState extends ConsumerState<MessageTile> {
                       SizedBox(width: 4),
                       Flexible(
                         child: Text(
-                          "Replying to: \"${widget.message.replyTo!.content}\"",
+                          t.replyingTo(_clampText(widget.message.replyTo!.content, 12)),
                           style: TextStyle(
                             fontSize: 12,
                             fontStyle: FontStyle.italic,

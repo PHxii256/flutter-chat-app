@@ -1,4 +1,5 @@
 // ignore_for_file: avoid_print
+import 'package:chat_app/generated/l10n.dart';
 import 'package:chat_app/views/pages/chat_room_page.dart';
 import 'package:flutter/material.dart';
 
@@ -30,6 +31,8 @@ class _UserInfoPageState extends State<UserInfoPage> {
 
   @override
   Widget build(BuildContext context) {
+    final t = S.of(context);
+
     return Scaffold(
       body: Center(
         child: Card(
@@ -43,7 +46,7 @@ class _UserInfoPageState extends State<UserInfoPage> {
                 Padding(
                   padding: EdgeInsetsGeometry.symmetric(vertical: 8),
                   child: Text(
-                    "Enter Chat Room",
+                    t.enterChatRoom,
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                 ),
@@ -52,7 +55,7 @@ class _UserInfoPageState extends State<UserInfoPage> {
                   child: TextField(
                     controller: usernameController,
                     decoration: InputDecoration(
-                      labelText: 'Username',
+                      labelText: t.username,
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8.0),
                         borderSide: BorderSide(color: Colors.black12, width: 2.0),
@@ -71,7 +74,7 @@ class _UserInfoPageState extends State<UserInfoPage> {
                   child: TextField(
                     controller: roomController,
                     decoration: InputDecoration(
-                      labelText: 'Room Code',
+                      labelText: t.roomCode,
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8.0),
                         borderSide: BorderSide(color: Colors.black12, width: 1.0),
@@ -88,7 +91,7 @@ class _UserInfoPageState extends State<UserInfoPage> {
                   padding: EdgeInsetsGeometry.symmetric(vertical: 8),
                   child: SizedBox(
                     width: 250,
-                    child: ElevatedButton(onPressed: submit, child: Text("Start Chatting")),
+                    child: ElevatedButton(onPressed: submit, child: Text(t.startChatting)),
                   ),
                 ),
               ],

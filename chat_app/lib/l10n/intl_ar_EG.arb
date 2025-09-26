@@ -1,0 +1,61 @@
+{
+    "@@locale": "ar_EG",
+    "enterChatRoom": "أدخل غرفة الشات",
+    "@enterChatRoom": {},
+    "username": "اسم المستخدم",
+    "@username": {},
+    "roomCode": "رمز الغرفة",
+    "@roomCode": {},
+    "startChatting": "ابدأ الدردشة",
+    "@startChatting": {},
+    "chatRoomTitle": "غرفة الشات #{roomCode}",
+    "@chatRoomTitle": {
+        "placeholders": {
+            "roomCode": {
+                "type": "String"
+            }
+        }
+    },
+    "enterMessage": "اكتب رسالة",
+    "@enterMessage": {},
+    "reactToMessage": "تفاعل مع الرسالة",
+    "@reactToMessage": {},
+    "showReactions": "إظهار التفاعلات",
+    "@showReactions": {},
+    "replyToMessage": "الرد على الرسالة",
+    "@replyToMessage": {},
+    "editMessage": "تعديل الرسالة",
+    "@editMessage": {},
+    "deleteMessage": "حذف الرسالة",
+    "@deleteMessage": {},
+    "noReactionsYet": "لا توجد تفاعلات بعد",
+    "@noReactionsYet": {},
+    "noRecents": "لا توجد حديثة",
+    "@noRecents": {},
+    "errorMessage": "خطأ: {error}",
+    "@errorMessage": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "replyTo": "الرد على {username}",
+    "@replyTo": {
+        "placeholders": {
+            "username": {
+                "type": "String"
+            }
+        }
+    },
+    "replyingTo": "رداً على {message}",
+    "@replyingTo": {
+        "placeholders": {
+            "message": {
+                "type": "String"
+            }
+        }
+    },
+    "editingMessage": "تعديل الرسالة",
+    "@editingMessage": {}
+}

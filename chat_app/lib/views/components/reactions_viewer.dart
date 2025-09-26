@@ -1,4 +1,5 @@
 // ignore_for_file: avoid_print
+import 'package:chat_app/generated/l10n.dart';
 import 'package:chat_app/models/message_data.dart';
 import 'package:flutter/material.dart';
 
@@ -54,13 +55,14 @@ class _ReactionsViewerState extends State<ReactionsViewer> with SingleTickerProv
 
   @override
   Widget build(BuildContext context) {
+    final t = S.of(context);
     final uniqueReactions = getUniqueReactions();
     final uniqueEmojis = uniqueReactions.keys.toList();
 
     if (uniqueEmojis.isEmpty) {
-      return const Padding(
+      return Padding(
         padding: EdgeInsets.all(16.0),
-        child: SizedBox(height: 300, child: Center(child: Text('No reactions yet'))),
+        child: SizedBox(height: 300, child: Center(child: Text(t.noReactionsYet))),
       );
     }
 

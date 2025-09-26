@@ -1,0 +1,61 @@
+{
+    "@@locale": "en",
+    "enterChatRoom": "Enter Chat Room",
+    "@enterChatRoom": {},
+    "username": "Username",
+    "@username": {},
+    "roomCode" : "Room Code",
+    "@roomCode": {},
+    "startChatting": "Start Chatting",
+    "@startChatting": {},
+    "chatRoomTitle": "Chat Room #{roomCode}",
+    "@chatRoomTitle": {
+        "placeholders": {
+            "roomCode": {
+                "type": "String"
+            }
+        }
+    },
+    "enterMessage": "Enter message",
+    "@enterMessage": {},
+    "reactToMessage": "React to Message",
+    "@reactToMessage": {},
+    "showReactions": "Show Reactions",
+    "@showReactions": {},
+    "replyToMessage": "Reply to Message",
+    "@replyToMessage": {},
+    "editMessage": "Edit Message",
+    "@editMessage": {},
+    "deleteMessage": "Delete Message",
+    "@deleteMessage": {},
+    "noReactionsYet": "No reactions yet",
+    "@noReactionsYet": {},
+    "noRecents": "No Recents",
+    "@noRecents": {},
+    "errorMessage": "Error: {error}",
+    "@errorMessage": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "replyTo": "Reply to {username}",
+    "@replyTo": {
+        "placeholders": {
+            "username": {
+                "type": "String"
+            }
+        }
+    },
+    "replyingTo": "Replying to {message}",
+    "@replyingTo": {
+        "placeholders": {
+            "message": {
+                "type": "String"
+            }
+        }
+    },
+    "editingMessage": "Editing Message",
+    "@editingMessage": {}
+}

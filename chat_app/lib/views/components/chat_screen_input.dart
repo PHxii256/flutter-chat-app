@@ -1,4 +1,6 @@
 // ignore_for_file: avoid_print
+import 'package:chat_app/generated/l10n.dart';
+import 'package:chat_app/main.dart';
 import 'package:chat_app/view_models/chat_room_notifier.dart';
 import 'package:chat_app/views/pages/info_page.dart';
 import 'package:chat_app/views/components/input_toast.dart';
@@ -51,6 +53,7 @@ class _ChatScreenInputState extends ConsumerState<ChatScreenInput> {
 
   @override
   Widget build(BuildContext context) {
+    final t = S.of(context);
     return Padding(
       padding: const EdgeInsets.all(6.0),
       child: Container(
@@ -69,44 +72,50 @@ class _ChatScreenInputState extends ConsumerState<ChatScreenInput> {
               spacing: 8,
               children: [
                 widget.getToast() ?? Container(),
-                Row(
-                  children: [
-                    IconButton.outlined(
-                      onPressed: exitRoom,
-                      style: ButtonStyle(
-                        side: WidgetStateProperty.all(
-                          BorderSide(color: Colors.black12, width: 2.0),
+                Directionality(
+                  textDirection: TextDirection.ltr,
+                  child: Row(
+                    children: [
+                      IconButton.outlined(
+                        onPressed: exitRoom,
+                        style: ButtonStyle(
+                          side: WidgetStateProperty.all(
+                            BorderSide(color: Colors.black12, width: 2.0),
+                          ),
+                          padding: WidgetStateProperty.all(EdgeInsets.zero),
+                          visualDensity: VisualDensity.compact,
+                          minimumSize: WidgetStateProperty.all(Size(58, 58)),
                         ),
-                        padding: WidgetStateProperty.all(EdgeInsets.zero),
-                        visualDensity: VisualDensity.compact,
-                        minimumSize: WidgetStateProperty.all(Size(58, 58)),
+                        icon: Icon(Icons.account_circle_outlined, size: 30),
                       ),
-                      icon: Icon(Icons.account_circle_outlined, size: 30),
-                    ),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: TextField(
-                        controller: widget.textController,
-                        decoration: InputDecoration(
-                          suffixIcon: IconButton(
-                            icon: Icon(Icons.send_rounded),
-                            onPressed: sendMessage,
-                          ),
-                          hintText: "Enter message",
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8.0),
-                            borderSide: BorderSide(color: Colors.black12, width: 2.0),
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8.0),
-                            borderSide: BorderSide(color: Colors.black12, width: 2.0),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Directionality(
+                          textDirection: MyApp.isArabic() ? TextDirection.rtl : TextDirection.ltr,
+                          child: TextField(
+                            controller: widget.textController,
+                            decoration: InputDecoration(
+                              suffixIcon: IconButton(
+                                icon: Icon(Icons.send_rounded),
+                                onPressed: sendMessage,
+                              ),
+                              hintText: t.enterMessage,
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8.0),
+                                borderSide: BorderSide(color: Colors.black12, width: 2.0),
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8.0),
+                                borderSide: BorderSide(color: Colors.black12, width: 2.0),
+                              ),
+                            ),
+                            onSubmitted: (_) => sendMessage(),
+                            textInputAction: TextInputAction.send,
                           ),
                         ),
-                        onSubmitted: (_) => sendMessage(),
-                        textInputAction: TextInputAction.send,
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ],
             ),
