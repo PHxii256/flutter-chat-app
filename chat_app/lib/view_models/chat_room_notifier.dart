@@ -2,6 +2,7 @@
 import 'dart:convert';
 import 'package:chat_app/models/message_data.dart';
 import 'package:chat_app/services/socket_service.dart';
+import 'package:chat_app/utils/server_url.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
@@ -333,7 +334,7 @@ class ChatRoomNotifier extends _$ChatRoomNotifier {
 
   void deleteMessage({required String msgId, required String roomCode}) async {
     try {
-      final res = await http.delete(Uri.parse("${getSocketUrl()}room/$roomCode/deleteMsg/$msgId"));
+      final res = await http.delete(Uri.parse("${getServertUrl()}room/$roomCode/deleteMsg/$msgId"));
       print("endpoint: room/$roomCode/deleteMsg/$msgId");
       if (res.statusCode == 200) {
         final json = jsonDecode(res.body) as Map<String, dynamic>;
@@ -356,7 +357,7 @@ class ChatRoomNotifier extends _$ChatRoomNotifier {
 
   Future<List<MessageData>> fetchChatHistory(String roomCode) async {
     try {
-      final res = await http.get(Uri.parse("${getSocketUrl()}room/chat-history/$roomCode"));
+      final res = await http.get(Uri.parse("${getServertUrl()}room/chat-history/$roomCode"));
       if (res.statusCode == 200) {
         final json = jsonDecode(res.body) as List<dynamic>;
         List<MessageData> messages = [];

@@ -50,7 +50,7 @@ final class ChatRoomNotifierProvider
   }
 }
 
-String _$chatRoomNotifierHash() => r'7badb8b22f2beec8456c3fb3ce3352af0a82c2c2';
+String _$chatRoomNotifierHash() => r'09ae4003050c5303e3de22f83999ea118c82c15d';
 
 final class ChatRoomNotifierFamily extends $Family
     with

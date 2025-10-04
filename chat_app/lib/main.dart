@@ -1,19 +1,20 @@
+import 'package:chat_app/view_models/locale_notifier.dart';
 import 'package:chat_app/views/pages/info_page.dart';
+import 'package:chat_app/views/widgets/auth_guard.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:intl/intl.dart';
 import 'generated/l10n.dart';
 
 void main() => runApp(ProviderScope(child: MyApp()));
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return MaterialApp(
-      locale: Locale("ar", "EG"),
+      locale: ref.watch(localeProvider),
       localizationsDelegates: [
         S.delegate,
         GlobalMaterialLocalizations.delegate,
@@ -22,11 +23,7 @@ class MyApp extends StatelessWidget {
       ],
 
       supportedLocales: S.delegate.supportedLocales,
-      home: const UserInfoPage(),
+      home: const AuthGuard(child: UserInfoPage()),
     );
-  }
-
-  static bool isArabic() {
-    return (Intl.getCurrentLocale() == "ar_EG" || Intl.getCurrentLocale() == "ar");
   }
 }

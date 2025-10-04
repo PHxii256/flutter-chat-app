@@ -37,6 +37,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "enterChatRoom": MessageLookupByLibrary.simpleMessage("Enter Chat Room"),
     "enterMessage": MessageLookupByLibrary.simpleMessage("Enter message"),
     "errorMessage": m1,
+    "logout": MessageLookupByLibrary.simpleMessage("Logout"),
     "noReactionsYet": MessageLookupByLibrary.simpleMessage("No reactions yet"),
     "noRecents": MessageLookupByLibrary.simpleMessage("No Recents"),
     "reactToMessage": MessageLookupByLibrary.simpleMessage("React to Message"),

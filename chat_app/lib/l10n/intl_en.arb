@@ -57,5 +57,7 @@
         }
     },
     "editingMessage": "Editing Message",
-    "@editingMessage": {}
+    "@editingMessage": {},
+    "logout": "Logout",
+    "@logout": {}
 }

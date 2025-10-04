@@ -57,5 +57,7 @@
         }
     },
     "editingMessage": "تعديل الرسالة",
-    "@editingMessage": {}
+    "@editingMessage": {},
+    "logout": "تسجيل خروج",
+    "@logout": {}
 }

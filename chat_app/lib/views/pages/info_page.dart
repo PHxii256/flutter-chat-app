@@ -1,20 +1,33 @@
 // ignore_for_file: avoid_print
 import 'package:chat_app/generated/l10n.dart';
+import 'package:chat_app/view_models/auth_view_model.dart';
 import 'package:chat_app/views/pages/chat_room_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class UserInfoPage extends StatefulWidget {
+class UserInfoPage extends ConsumerStatefulWidget {
   const UserInfoPage({super.key});
 
   @override
-  State<UserInfoPage> createState() => _UserInfoPageState();
+  ConsumerState<UserInfoPage> createState() => _UserInfoPageState();
 }
 
-class _UserInfoPageState extends State<UserInfoPage> {
+class _UserInfoPageState extends ConsumerState<UserInfoPage> {
   String username = "Anonymous User";
   String roomCode = "general";
+  bool editableUsername = true;
   final usernameController = TextEditingController();
   final roomController = TextEditingController();
+
+  @override
+  void initState() {
+    final currentUser = ref.read(authViewModelProvider.notifier).getCurrentUser();
+    if (currentUser != null) {
+      usernameController.text = currentUser.username;
+      editableUsername = false;
+    }
+    super.initState();
+  }
 
   void submit() {
     if (mounted) {
@@ -53,6 +66,7 @@ class _UserInfoPageState extends State<UserInfoPage> {
                 SizedBox(
                   width: 250,
                   child: TextField(
+                    enabled: editableUsername,
                     controller: usernameController,
                     decoration: InputDecoration(
                       labelText: t.username,
@@ -91,7 +105,23 @@ class _UserInfoPageState extends State<UserInfoPage> {
                   padding: EdgeInsetsGeometry.symmetric(vertical: 8),
                   child: SizedBox(
                     width: 250,
-                    child: ElevatedButton(onPressed: submit, child: Text(t.startChatting)),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton(onPressed: submit, child: Text(t.startChatting)),
+                        ),
+                        SizedBox(width: 8),
+                        ElevatedButton(
+                          onPressed: () {
+                            ref.read(authViewModelProvider.notifier).logout();
+                            if (mounted) {
+                              Navigator.of(context).pop();
+                            }
+                          },
+                          child: Text(t.logout, style: TextStyle(color: Colors.red)),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],

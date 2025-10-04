@@ -37,6 +37,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "enterChatRoom": MessageLookupByLibrary.simpleMessage("أدخل غرفة الشات"),
     "enterMessage": MessageLookupByLibrary.simpleMessage("اكتب رسالة"),
     "errorMessage": m1,
+    "logout": MessageLookupByLibrary.simpleMessage("تسجيل خروج"),
     "noReactionsYet": MessageLookupByLibrary.simpleMessage(
       "لا توجد تفاعلات بعد",
     ),

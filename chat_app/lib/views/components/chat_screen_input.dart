@@ -1,7 +1,7 @@
 // ignore_for_file: avoid_print
 import 'package:chat_app/generated/l10n.dart';
-import 'package:chat_app/main.dart';
 import 'package:chat_app/view_models/chat_room_notifier.dart';
+import 'package:chat_app/view_models/locale_notifier.dart';
 import 'package:chat_app/views/pages/info_page.dart';
 import 'package:chat_app/views/components/input_toast.dart';
 import 'package:flutter/material.dart';
@@ -91,7 +91,9 @@ class _ChatScreenInputState extends ConsumerState<ChatScreenInput> {
                       SizedBox(width: 8),
                       Expanded(
                         child: Directionality(
-                          textDirection: MyApp.isArabic() ? TextDirection.rtl : TextDirection.ltr,
+                          textDirection: ref.read(localeProvider.notifier).isArabic()
+                              ? TextDirection.rtl
+                              : TextDirection.ltr,
                           child: TextField(
                             controller: widget.textController,
                             decoration: InputDecoration(
