@@ -3,13 +3,27 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../view_models/auth_view_model.dart';
 import '../pages/login_page.dart';
 
-class AuthGuard extends ConsumerWidget {
+class AuthGuard extends ConsumerStatefulWidget {
   final Widget child;
 
   const AuthGuard({super.key, required this.child});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AuthGuard> createState() => _AuthGuardState();
+}
+
+class _AuthGuardState extends ConsumerState<AuthGuard> {
+  @override
+  void initState() {
+    super.initState();
+    // Initialize auth check after the widget is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(authViewModelProvider.notifier).initialize();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final authState = ref.watch(authViewModelProvider);
 
     if (authState.isLoading) {
@@ -20,6 +34,6 @@ class AuthGuard extends ConsumerWidget {
       return const LoginPage();
     }
 
-    return child;
+    return widget.child;
   }
 }

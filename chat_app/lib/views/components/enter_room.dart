@@ -5,14 +5,15 @@ import 'package:chat_app/views/pages/chat_room_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class UserInfoPage extends ConsumerStatefulWidget {
-  const UserInfoPage({super.key});
+class EnterRoom extends ConsumerStatefulWidget {
+  final void Function()? closeDialog;
+  const EnterRoom({super.key, this.closeDialog});
 
   @override
-  ConsumerState<UserInfoPage> createState() => _UserInfoPageState();
+  ConsumerState<EnterRoom> createState() => _UserInfoPageState();
 }
 
-class _UserInfoPageState extends ConsumerState<UserInfoPage> {
+class _UserInfoPageState extends ConsumerState<EnterRoom> {
   String username = "Anonymous User";
   String roomCode = "general";
   bool editableUsername = true;
@@ -21,16 +22,23 @@ class _UserInfoPageState extends ConsumerState<UserInfoPage> {
 
   @override
   void initState() {
-    final currentUser = ref.read(authViewModelProvider.notifier).getCurrentUser();
-    if (currentUser != null) {
-      usernameController.text = currentUser.username;
-      editableUsername = false;
-    }
     super.initState();
+    // Use addPostFrameCallback to ensure the provider is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final currentUser = ref.read(authViewModelProvider.notifier).getCurrentUser();
+      if (currentUser != null) {
+        usernameController.text = currentUser.username;
+        setState(() {
+          editableUsername = false;
+        });
+      }
+    });
   }
 
   void submit() {
     if (mounted) {
+      if (widget.closeDialog != null) widget.closeDialog!();
+
       Navigator.of(context).push(
         MaterialPageRoute(
           builder: (context) => ChatRoom(
@@ -46,8 +54,9 @@ class _UserInfoPageState extends ConsumerState<UserInfoPage> {
   Widget build(BuildContext context) {
     final t = S.of(context);
 
-    return Scaffold(
-      body: Center(
+    return Center(
+      child: SizedBox(
+        height: 280,
         child: Card(
           child: Padding(
             padding: const EdgeInsets.all(16.0),
@@ -57,7 +66,7 @@ class _UserInfoPageState extends ConsumerState<UserInfoPage> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Padding(
-                  padding: EdgeInsetsGeometry.symmetric(vertical: 8),
+                  padding: EdgeInsetsGeometry.fromLTRB(0, 8, 0, 16),
                   child: Text(
                     t.enterChatRoom,
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
@@ -115,6 +124,7 @@ class _UserInfoPageState extends ConsumerState<UserInfoPage> {
                           onPressed: () {
                             ref.read(authViewModelProvider.notifier).logout();
                             if (mounted) {
+                              if (widget.closeDialog != null) widget.closeDialog!();
                               Navigator.of(context).pop();
                             }
                           },

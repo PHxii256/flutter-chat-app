@@ -1,5 +1,6 @@
 import 'package:chat_app/view_models/locale_notifier.dart';
-import 'package:chat_app/views/pages/info_page.dart';
+import 'package:chat_app/views/pages/conversations_page.dart';
+import 'package:chat_app/views/components/enter_room.dart';
 import 'package:chat_app/views/widgets/auth_guard.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -23,7 +24,7 @@ class MyApp extends ConsumerWidget {
       ],
 
       supportedLocales: S.delegate.supportedLocales,
-      home: const AuthGuard(child: UserInfoPage()),
+      home: const AuthGuard(child: ConversationsPage()),
     );
   }
 }

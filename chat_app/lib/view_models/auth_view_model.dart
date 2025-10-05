@@ -9,12 +9,16 @@ part 'auth_view_model.g.dart';
 class AuthViewModel extends _$AuthViewModel {
   @override
   AuthState build() {
-    // Initialize and check auth status
-    _checkInitialAuthStatus();
-    return const AuthState();
+    // Return initial state without any provider reads
+    return const AuthState(isLoading: false);
   }
 
-  // Traditional MVVM: ViewModel contains business logic
+  // Public method to initialize auth check
+  Future<void> initialize() async {
+    state = state.copyWith(isLoading: true);
+    await _checkInitialAuthStatus();
+  }
+
   Future<void> login(String email, String password) async {
     // Validation business logic
     if (email.isEmpty || password.isEmpty) {
@@ -46,7 +50,6 @@ class AuthViewModel extends _$AuthViewModel {
     required String username,
     required String confirmPassword,
   }) async {
-    // Business logic validation
     if (email.isEmpty || password.isEmpty || username.isEmpty) {
       state = state.copyWith(error: 'All fields are required');
       return;
@@ -144,7 +147,6 @@ class AuthViewModel extends _$AuthViewModel {
     state = state.copyWith(error: null);
   }
 
-  // Business logic helper methods
   bool _isValidEmail(String email) {
     return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
   }

@@ -28,41 +28,6 @@ class _ChatRoomState extends ConsumerState<ChatRoom> {
   InputToast? currentToast;
 
   @override
-  void initState() {
-    super.initState();
-    // Refresh data when switching to this user
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _refreshCurrentUserData();
-    });
-  }
-
-  @override
-  void didUpdateWidget(ChatRoom oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    // If username or roomCode changed, refresh the data
-    if (oldWidget.username != widget.username || oldWidget.roomCode != widget.roomCode) {
-      _refreshCurrentUserData();
-    }
-  }
-
-  void _refreshCurrentUserData() {
-    final chatroomProvider = chatRoomProvider(roomCode: widget.roomCode, username: widget.username);
-    // Invalidate the provider to force rebuild and get fresh data
-    ref.invalidate(chatroomProvider);
-
-    // Also try to refresh from server if the provider is already loaded
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        try {
-          ref.read(chatroomProvider.notifier).refreshFromServer();
-        } catch (e) {
-          print('Error refreshing from server: $e');
-        }
-      }
-    });
-  }
-
-  @override
   void dispose() {
     scrollController.dispose();
     super.dispose();

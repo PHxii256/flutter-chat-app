@@ -2,7 +2,7 @@
 import 'package:chat_app/generated/l10n.dart';
 import 'package:chat_app/view_models/chat_room_notifier.dart';
 import 'package:chat_app/view_models/locale_notifier.dart';
-import 'package:chat_app/views/pages/info_page.dart';
+import 'package:chat_app/views/components/enter_room.dart';
 import 'package:chat_app/views/components/input_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -48,7 +48,7 @@ class _ChatScreenInputState extends ConsumerState<ChatScreenInput> {
 
   void exitRoom() {
     if (!mounted) return;
-    Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => UserInfoPage()));
+    Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => EnterRoom()));
   }
 
   @override

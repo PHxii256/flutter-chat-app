@@ -28,9 +28,13 @@ class AuthApiService {
     }
   }
 
-  Future<void> logout(String refreshToken) async {
+  Future<void> logout(String refreshToken, [String? accessToken]) async {
     try {
-      await _dio.post('/auth/logout', data: {'refreshToken': refreshToken});
+      final options = accessToken != null
+          ? Options(headers: {'Authorization': 'Bearer $accessToken'})
+          : Options();
+
+      await _dio.post('/auth/logout', data: {'refreshToken': refreshToken}, options: options);
     } on DioException catch (e) {
       // Handle 401 specifically - user already logged out on server
       if (e.response?.statusCode == 401) {
@@ -39,6 +43,17 @@ class AuthApiService {
       }
       // Log other errors but don't throw - logout should always succeed locally
       print('Logout API call failed: ${e.message}');
+    }
+  }
+
+  Future<bool> validateToken(String accessToken) async {
+    try {
+      final options = Options(headers: {'Authorization': 'Bearer $accessToken'});
+      await _dio.get('/auth/validate', options: options);
+      return true;
+    } on DioException catch (e) {
+      print('Token validation failed: ${e.message}');
+      return false;
     }
   }
 

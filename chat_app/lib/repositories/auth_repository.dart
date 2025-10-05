@@ -42,12 +42,13 @@ class AuthRepository {
   }
 
   Future<void> logout() async {
-    // Get refresh token before clearing it
+    // Get tokens before clearing them
     final refreshToken = await _tokenService.getRefreshToken();
+    final accessToken = await _tokenService.getAccessToken();
 
-    // 1. Call API service with refresh token (best effort)
+    // 1. Call API service with tokens (best effort)
     if (refreshToken != null) {
-      await _apiService.logout(refreshToken);
+      await _apiService.logout(refreshToken, accessToken);
     }
 
     // 2. Clear all local data regardless of API call result
@@ -85,7 +86,6 @@ class AuthRepository {
     }
   }
 
-  // New method for automatic login validation
   Future<bool> validateAndRefreshTokens() async {
     try {
       // First check if we have tokens at all
@@ -96,11 +96,11 @@ class AuthRepository {
         return false;
       }
 
-      // TODO: You can add JWT token expiration check here if needed
-      // For now, we'll assume if we have tokens, they might be valid
+      final isValid = await _apiService.validateToken(accessToken);
 
-      // Try to validate with a test API call (optional)
-      // If your backend has a /auth/validate endpoint, use it here
+      if (isValid) {
+        return true;
+      }
 
       // If access token is expired, try refresh
       final refreshSuccess = await refreshTokens();
