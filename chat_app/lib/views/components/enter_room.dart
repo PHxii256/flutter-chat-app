@@ -125,7 +125,6 @@ class _UserInfoPageState extends ConsumerState<EnterRoom> {
                             ref.read(authViewModelProvider.notifier).logout();
                             if (mounted) {
                               if (widget.closeDialog != null) widget.closeDialog!();
-                              Navigator.of(context).pop();
                             }
                           },
                           child: Text(t.logout, style: TextStyle(color: Colors.red)),

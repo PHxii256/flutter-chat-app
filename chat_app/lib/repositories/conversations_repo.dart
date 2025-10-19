@@ -12,7 +12,7 @@ class ConversationsRepository {
     try {
       return _conversationsService.getChatrooms(userId);
     } catch (e) {
-      print("Eeeeeeeeeeeeeee");
+      print(e);
       rethrow;
     }
   }

@@ -1,7 +1,10 @@
 // ignore_for_file: avoid_print
 import 'dart:convert';
 import 'package:chat_app/models/message_data.dart';
+import 'package:chat_app/repositories/auth_repository.dart';
 import 'package:chat_app/services/socket_service.dart';
+import 'package:chat_app/services/token_storage_service.dart';
+import 'package:chat_app/utils/pretty_json.dart';
 import 'package:chat_app/utils/server_url.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
@@ -28,6 +31,7 @@ class ChatRoomNotifier extends _$ChatRoomNotifier {
       _chatroomService.onMessageReceived = null;
       _chatroomService.onMessageUpdated = null;
       _chatroomService.onReactionReceived = null;
+      _chatroomService.onAuthError = null;
       _chatroomService.dispose();
       onHistoryLoaded = null;
       onMessagesChanged = null;
@@ -55,37 +59,91 @@ class ChatRoomNotifier extends _$ChatRoomNotifier {
   }
 
   Future<bool> initService({required String username, required String roomCode}) async {
+    print("🚀 Socket Service init for user: $username, room: $roomCode");
+
     try {
-      await _chatroomService.connectAndListen(roomCode: roomCode, username: username);
+      // Get the auth token from storage
+      final tokenService = ref.read(tokenStorageServiceProvider);
+      var authToken = await tokenService.getAccessToken();
+
+      print(
+        "🔑 Auth token status: ${authToken != null ? 'Found (${authToken.length} chars)' : 'Missing'}",
+      );
+
+      // If we don't have a token at all, try to refresh
+      if (authToken == null || authToken.isEmpty) {
+        print("� No token found, attempting to get fresh tokens...");
+        final authRepo = ref.read(authRepositoryProvider);
+        final refreshSuccess = await authRepo.refreshTokens();
+
+        if (refreshSuccess) {
+          print("✅ Token refreshed successfully");
+          authToken = await tokenService.getAccessToken();
+          print(
+            "🔑 New token status: ${authToken != null ? 'Found (${authToken.length} chars)' : 'Missing'}",
+          );
+        } else {
+          print("❌ Token refresh failed, user needs to login");
+          return false;
+        }
+      } else {
+        // Show first and last few characters for debugging (don't log full token for security)
+        String tokenPreview = authToken.length > 10
+            ? "${authToken.substring(0, 5)}...${authToken.substring(authToken.length - 5)}"
+            : "Short token";
+        print("🔍 Token preview: $tokenPreview");
+      }
+
+      try {
+        if (authToken == null || authToken.isEmpty) {
+          print("⚠️ No valid auth token available, cannot connect to socket");
+          return false;
+        }
+
+        final authConnectionSuccess = await _chatroomService.connectAndListen(
+          roomCode: roomCode,
+          username: username,
+          authToken: authToken,
+        );
+
+        if (authConnectionSuccess) {
+          print("✅ Primary auth connection successful");
+        } else {
+          print("❌ Primary auth connection returned false");
+        }
+      } catch (e) {
+        print("❌ Primary auth connection failed: $e");
+        return false;
+      }
+
       _chatroomService.onMessageReceived = _parseReceivedMsg;
       _chatroomService.onMessageUpdated = _parseUpdatedMsg;
       _chatroomService.onReactionReceived = _parseReactionUpdate;
-      print('ChatroomRepo initialized successfully');
+
+      // Set up auth error callback to handle token refresh
+      _chatroomService.onAuthError = () async {
+        print('Auth error detected, attempting token refresh...');
+        try {
+          // Import auth repository to refresh tokens
+          final authRepo = ref.read(authRepositoryProvider);
+          final refreshSuccess = await authRepo.refreshTokens();
+
+          if (refreshSuccess) {
+            // Reconnect with the new token
+            print("refreshed the token");
+          } else {
+            print('Token refresh failed, user may need to log in again');
+          }
+        } catch (e) {
+          print('Error during auth error handling: $e');
+        }
+      };
+
+      print('ChatroomRepo initialized successfully with auth token');
       return true;
     } catch (e) {
       print('Error initializing ChatroomRepo: $e');
       return false;
-    }
-  }
-
-  // Method to refresh state from server (useful when switching users)
-  Future<void> refreshFromServer() async {
-    try {
-      print('Refreshing state from server for room: $roomCode');
-      final freshHistory = await fetchChatHistory(roomCode);
-      state = AsyncValue.data(freshHistory);
-      print('State refreshed from server - ${freshHistory.length} messages loaded');
-
-      // Log reactions for debugging
-      for (var msg in freshHistory) {
-        if (msg.reactions.isNotEmpty) {
-          print(
-            'Message ${msg.id} has ${msg.reactions.length} reactions: ${msg.reactions.map((r) => '${r.emoji} by ${r.senderUsername}').join(', ')}',
-          );
-        }
-      }
-    } catch (e) {
-      print('Error refreshing from server: $e');
     }
   }
 
@@ -107,6 +165,7 @@ class ChatRoomNotifier extends _$ChatRoomNotifier {
           createdAt: DateTime.now(),
           username: 'Server',
           reactions: [],
+          type: 'text',
         );
       }
 
@@ -235,6 +294,25 @@ class ChatRoomNotifier extends _$ChatRoomNotifier {
     }
   }
 
+  void sendImageMessage({
+    required String username,
+    required List<ImageData> images,
+    String? content,
+    ReplyTo? replyTo,
+  }) {
+    if (_chatroomService.isConnected) {
+      _chatroomService.sendImageMessage(
+        username: username,
+        roomCode: roomCode,
+        images: images,
+        content: content,
+        replyTo: replyTo,
+      );
+    } else {
+      print('Cannot send image message: not connected to socket');
+    }
+  }
+
   static const int maxReactionsPerMessage = 50;
   static const int maxReactionsPerUserPerMessage = 10;
 
@@ -360,6 +438,7 @@ class ChatRoomNotifier extends _$ChatRoomNotifier {
       final res = await http.get(Uri.parse("${getServertUrl()}room/chat-history/$roomCode"));
       if (res.statusCode == 200) {
         final json = jsonDecode(res.body) as List<dynamic>;
+        prettyJsonPrint(json);
         List<MessageData> messages = [];
         for (var msg in json) {
           messages.add(MessageData.fromJson(msg, roomCode));

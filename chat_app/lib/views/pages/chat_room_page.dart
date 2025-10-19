@@ -2,6 +2,7 @@
 import 'package:chat_app/generated/l10n.dart';
 import 'package:chat_app/models/message_data.dart';
 import 'package:chat_app/view_models/chat_room_notifier.dart';
+import 'package:chat_app/view_models/conversation_members_notifier.dart';
 import 'package:chat_app/views/components/chat_screen_input.dart';
 import 'package:chat_app/views/components/input_toast.dart';
 import 'package:chat_app/views/components/message_options_menu.dart';
@@ -104,7 +105,10 @@ class _ChatRoomState extends ConsumerState<ChatRoom> {
           .sendMessage(
             username: widget.username,
             content: textController.text,
-            replyTo: ReplyTo(content: repliedToMsg.content, messageId: repliedToMsg.id),
+            replyTo: ReplyTo(
+              content: repliedToMsg.content ?? repliedToMsg.type,
+              messageId: repliedToMsg.id,
+            ),
           );
     }
 
@@ -114,7 +118,10 @@ class _ChatRoomState extends ConsumerState<ChatRoom> {
           .sendMessage(
             username: widget.username,
             content: textController.text,
-            replyTo: ReplyTo(content: repliedToMsg.content, messageId: repliedToMsg.id),
+            replyTo: ReplyTo(
+              content: repliedToMsg.content ?? repliedToMsg.type,
+              messageId: repliedToMsg.id,
+            ),
           );
     }
 
@@ -179,6 +186,111 @@ class _ChatRoomState extends ConsumerState<ChatRoom> {
     }
 
     return Scaffold(
+      endDrawer: Drawer(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadiusGeometry.circular(12)),
+        child: Consumer(
+          builder: (context, ref, child) {
+            // Watch the conversation members provider for this specific room
+            final membersAsync = ref.watch(conversationMembersProvider(widget.roomCode));
+
+            return membersAsync.when(
+              data: (members) {
+                return ListView.builder(
+                  itemCount: members.length + 1, // +1 for the header
+                  itemBuilder: (context, index) {
+                    if (index == 0) {
+                      return Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 18, 8, 8),
+                        child: Row(
+                          children: [
+                            SizedBox(width: 8, child: Divider()),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 7.0),
+                              child: Text(
+                                "Members (${members.length})",
+                                style: TextStyle(fontSize: 17, fontStyle: FontStyle.italic),
+                              ),
+                            ),
+                            Expanded(child: Divider()),
+                          ],
+                        ),
+                      );
+                    }
+
+                    final memberIndex = index - 1;
+                    final member = members[memberIndex];
+
+                    return ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: Theme.of(context).colorScheme.primary.withAlpha(25),
+                        child: member.profilePic != null
+                            ? ClipOval(child: Image.network(member.profilePic!, fit: BoxFit.cover))
+                            : Icon(Icons.person, color: Theme.of(context).colorScheme.primary),
+                      ),
+                      title: Text(
+                        member.username,
+                        style: TextStyle(
+                          fontWeight: member.username == widget.username
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                        ),
+                      ),
+                      subtitle: member.username == widget.username
+                          ? Text("You", style: TextStyle(fontStyle: FontStyle.italic))
+                          : null,
+                      onTap: () {
+                        // You can add functionality here, like viewing user profile
+                      },
+                    );
+                  },
+                );
+              },
+              loading: () => ListView.builder(
+                itemCount: 1,
+                itemBuilder: (context, index) {
+                  return Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 18, 8, 8),
+                    child: Row(
+                      children: [
+                        SizedBox(width: 8, child: Divider()),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 7.0),
+                          child: Text(
+                            "Loading Members...",
+                            style: TextStyle(fontSize: 17, fontStyle: FontStyle.italic),
+                          ),
+                        ),
+                        Expanded(child: Divider()),
+                      ],
+                    ),
+                  );
+                },
+              ),
+              error: (error, stack) => ListView.builder(
+                itemCount: 1,
+                itemBuilder: (context, index) {
+                  return Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 18, 8, 8),
+                    child: Row(
+                      children: [
+                        SizedBox(width: 8, child: Divider()),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 7.0),
+                          child: Text(
+                            "Error loading members",
+                            style: TextStyle(fontSize: 17, fontStyle: FontStyle.italic),
+                          ),
+                        ),
+                        Expanded(child: Divider()),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            );
+          },
+        ),
+      ),
       appBar: AppBar(title: Text(t.chatRoomTitle(widget.roomCode))),
       body: Column(
         children: [

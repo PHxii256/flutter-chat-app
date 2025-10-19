@@ -1,6 +1,7 @@
+import 'package:chat_app/services/auth_interceptor.dart';
 import 'package:chat_app/utils/server_url.dart';
 import 'package:dio/dio.dart';
-import 'package:dio_smart_retry/dio_smart_retry.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'dio.g.dart';
 
@@ -17,6 +18,9 @@ Dio dio(Ref ref) {
 
   dio.options.headers['Accept'] = 'application/json';
   dio.options.headers['Content-Type'] = 'application/json';
+
+  // Add authentication interceptor
+  dio.interceptors.add(AuthInterceptor(const FlutterSecureStorage()));
 
   return dio;
 }

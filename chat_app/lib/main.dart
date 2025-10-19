@@ -1,13 +1,21 @@
 import 'package:chat_app/view_models/locale_notifier.dart';
 import 'package:chat_app/views/pages/conversations_page.dart';
-import 'package:chat_app/views/components/enter_room.dart';
 import 'package:chat_app/views/widgets/auth_guard.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'generated/l10n.dart';
 
-void main() => runApp(ProviderScope(child: MyApp()));
+void main() => runApp(
+  ProviderScope(
+    retry: (retryCount, error) {
+      // Retry up to 3 times
+      if (retryCount >= 3) return null;
+      return Duration(milliseconds: 200 * (1 << retryCount)); // Exponential backoff
+    },
+    child: MyApp(),
+  ),
+);
 
 class MyApp extends ConsumerWidget {
   const MyApp({super.key});

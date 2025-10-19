@@ -93,7 +93,7 @@ class MessageOptionsMenu extends StatelessWidget {
                               editingText: t.editingMessage,
                             ),
                           );
-                          textController.text = message.content;
+                          textController.text = message.content ?? '';
                           Navigator.pop(context);
                         },
                         child: Text(t.editMessage),

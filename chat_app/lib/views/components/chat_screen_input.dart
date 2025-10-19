@@ -1,11 +1,16 @@
 // ignore_for_file: avoid_print
 import 'package:chat_app/generated/l10n.dart';
+import 'package:chat_app/services/image_upload_service.dart';
+import 'package:chat_app/services/token_storage_service.dart';
+import 'package:chat_app/utils/image_picker_helper.dart';
+import 'package:chat_app/view_models/auth_view_model.dart';
 import 'package:chat_app/view_models/chat_room_notifier.dart';
 import 'package:chat_app/view_models/locale_notifier.dart';
-import 'package:chat_app/views/components/enter_room.dart';
+import 'package:chat_app/views/components/chat_media_picker.dart';
 import 'package:chat_app/views/components/input_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 
 class ChatScreenInput extends ConsumerStatefulWidget {
   final TextEditingController textController;
@@ -46,11 +51,6 @@ class _ChatScreenInputState extends ConsumerState<ChatScreenInput> {
     }
   }
 
-  void exitRoom() {
-    if (!mounted) return;
-    Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => EnterRoom()));
-  }
-
   @override
   Widget build(BuildContext context) {
     final t = S.of(context);
@@ -76,17 +76,13 @@ class _ChatScreenInputState extends ConsumerState<ChatScreenInput> {
                   textDirection: TextDirection.ltr,
                   child: Row(
                     children: [
-                      IconButton.outlined(
-                        onPressed: exitRoom,
-                        style: ButtonStyle(
-                          side: WidgetStateProperty.all(
-                            BorderSide(color: Colors.black12, width: 2.0),
-                          ),
-                          padding: WidgetStateProperty.all(EdgeInsets.zero),
-                          visualDensity: VisualDensity.compact,
-                          minimumSize: WidgetStateProperty.all(Size(58, 58)),
-                        ),
-                        icon: Icon(Icons.account_circle_outlined, size: 30),
+                      ChatMediaPicker(
+                        chatRoomProvider: widget.chatRoomProvider,
+                        textController: widget.textController,
+                        username: widget.username,
+                        roomCode: widget.roomCode,
+                        getToast: widget.getToast,
+                        closeToast: widget.closeToast,
                       ),
                       SizedBox(width: 8),
                       Expanded(

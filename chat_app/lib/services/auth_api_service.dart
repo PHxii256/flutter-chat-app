@@ -49,7 +49,7 @@ class AuthApiService {
   Future<bool> validateToken(String accessToken) async {
     try {
       final options = Options(headers: {'Authorization': 'Bearer $accessToken'});
-      await _dio.get('/auth/validate', options: options);
+      await _dio.get('/auth/validate-token', options: options);
       return true;
     } on DioException catch (e) {
       print('Token validation failed: ${e.message}');
@@ -59,7 +59,7 @@ class AuthApiService {
 
   Future<AuthResponse> refreshToken(String refreshToken) async {
     try {
-      final response = await _dio.post('/auth/refresh', data: {'refresh_token': refreshToken});
+      final response = await _dio.post('/auth/refresh-token', data: {'refreshToken': refreshToken});
       return AuthResponse.fromJson(response.data);
     } on DioException catch (e) {
       throw Exception('Token refresh failed: ${e.response?.data['message'] ?? e.message}');
