@@ -1,9 +1,10 @@
+import 'package:chat_app/features/chat/models/user_model.dart';
+import 'package:chat_app/features/chat/services/user_cache_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../services/auth_api_service.dart';
 import '../services/token_storage_service.dart';
-import '../services/user_cache_service.dart';
+
 import '../models/auth_models.dart';
-import '../models/user_model.dart';
 
 part 'auth_repository.g.dart';
 

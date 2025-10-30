@@ -1,6 +1,6 @@
-import 'package:chat_app/view_models/locale_notifier.dart';
-import 'package:chat_app/views/pages/conversations_page.dart';
-import 'package:chat_app/views/widgets/auth_guard.dart';
+import 'package:chat_app/features/localization/providers/locale_notifier.dart';
+import 'package:chat_app/features/conversations/pages/conversations_page.dart';
+import 'package:chat_app/shared/widgets/auth_guard.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';

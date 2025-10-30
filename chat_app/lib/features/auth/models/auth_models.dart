@@ -1,4 +1,4 @@
-import 'user_model.dart';
+import 'package:chat_app/features/chat/models/user_model.dart';
 
 class LoginRequest {
   final String email;

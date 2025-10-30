@@ -1,4 +1,4 @@
-import 'package:chat_app/models/user_model.dart';
+import 'package:chat_app/features/chat/models/user_model.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../repositories/auth_repository.dart';
 import '../models/auth_models.dart';
