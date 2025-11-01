@@ -1,9 +1,5 @@
 import 'package:chat_app/features/conversations/models/conversations_data.dart';
-import 'package:chat_app/core/network/dio.dart';
 import 'package:dio/dio.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-
-part 'conversations_service.g.dart';
 
 class ConversationsService {
   final Dio _dio;
@@ -37,9 +33,4 @@ class ConversationsService {
       rethrow;
     }
   }
-}
-
-@riverpod
-ConversationsService conversationsService(Ref ref) {
-  return ConversationsService(ref.watch(dioProvider));
 }

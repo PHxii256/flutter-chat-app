@@ -4,9 +4,8 @@ import 'package:chat_app/features/chat/widgets/message_tile.dart';
 import 'package:chat_app/features/chat/widgets/text_message_tile.dart';
 import 'package:chat_app/features/chat/widgets/image_message_tile.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class MessageTileFactory extends ConsumerWidget {
+class MessageTileFactory extends StatelessWidget {
   final String roomCode;
   final String currentUsername;
   final MessageData message;
@@ -25,7 +24,7 @@ class MessageTileFactory extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     // Factory pattern with composition - determine content widget based on message type
     Widget content;
     if (message.type == 'image' && message is ImageMessageData) {

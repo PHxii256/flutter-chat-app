@@ -1,10 +1,10 @@
 import 'package:chat_app/features/chat/models/message_data.dart';
-import 'package:chat_app/features/chat/providers/toast_provider.dart';
+import 'package:chat_app/features/chat/bloc/toast_cubit.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
-abstract class InputToast extends ConsumerWidget {
+abstract class InputToast extends StatelessWidget {
   final String message;
   final IconData icon;
   const InputToast({super.key, required this.message, required this.icon});
@@ -12,7 +12,7 @@ abstract class InputToast extends ConsumerWidget {
   void performAction();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return SizedBox(
       height: 20,
       child: Row(
@@ -23,7 +23,7 @@ abstract class InputToast extends ConsumerWidget {
           Spacer(),
           GestureDetector(
             onTap: () {
-              ref.read(toastProvider.notifier).setToast(null);
+              context.read<ToastCubit>().setToast(null);
             },
             child: Icon(Symbols.close, size: 20, fontWeight: FontWeight.bold, opticalSize: 1),
           ),

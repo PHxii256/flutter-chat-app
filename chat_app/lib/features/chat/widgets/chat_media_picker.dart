@@ -1,23 +1,19 @@
 import 'package:chat_app/shared/utils/image_picker_helper.dart';
-import 'package:chat_app/features/chat/providers/chat_room_notifier.dart';
-import 'package:chat_app/features/chat/providers/image_upload_provider.dart';
+import 'package:chat_app/features/auth/bloc/auth_cubit.dart';
+import 'package:chat_app/features/auth/data/services/token_storage_service.dart';
+import 'package:chat_app/features/chat/services/image_upload_handler.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:image_picker/image_picker.dart';
 
-class ChatMediaPicker extends ConsumerWidget {
+class ChatMediaPicker extends StatelessWidget {
   final TextEditingController textController;
-  final ChatRoomNotifierProvider chatRoomProvider;
   final String roomCode;
-  const ChatMediaPicker({
-    super.key,
-    required this.chatRoomProvider,
-    required this.textController,
-    required this.roomCode,
-  });
+  const ChatMediaPicker({super.key, required this.textController, required this.roomCode});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     Future<void> pickAndSendImages() async {
       if (!context.mounted) return;
 
@@ -35,44 +31,47 @@ class ChatMediaPicker extends ConsumerWidget {
             builder: (context) => const Center(child: CircularProgressIndicator()),
           );
         }
+        if (context.mounted) {
+          // Create upload handler and upload images
+          final imageUploadHandler = ImageUploadHandler(
+            tokenStorageService: TokenStorageService(const FlutterSecureStorage()),
+            authCubit: context.read<AuthCubit>(),
+          );
 
-        // Call provider function to handle upload logic
-        final result = await ref.read(
-          uploadImagesProvider(
+          final result = await imageUploadHandler.uploadImages(
             images: pickedImages,
             roomCode: roomCode,
             content: textController.text.isNotEmpty ? textController.text : null,
-          ).future,
-        );
+          );
 
-        // Close loading dialog
-        if (context.mounted) {
-          Navigator.of(context).pop();
-        }
+          // Close loading dialog
 
-        // Handle result
-        if (result.success) {
-          // Clear text controller on success
-          textController.clear();
+          if (context.mounted) Navigator.of(context).pop();
 
-          // Show warning if some images were invalid
-          if (result.invalidImageNames != null && result.invalidImageNames!.isNotEmpty) {
+          // Handle result
+          if (result.success) {
+            // Clear text controller on success
+            textController.clear();
+
+            // Show warning if some images were invalid
+            if (result.invalidImageNames != null && result.invalidImageNames!.isNotEmpty) {
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Some images were too large (max 5MB): ${result.invalidImageNames!.join(", ")}',
+                    ),
+                  ),
+                );
+              }
+            }
+          } else {
+            // Show error message
             if (context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    'Some images were too large (max 5MB): ${result.invalidImageNames!.join(", ")}',
-                  ),
-                ),
+                SnackBar(content: Text(result.errorMessage ?? 'Failed to upload images')),
               );
             }
-          }
-        } else {
-          // Show error message
-          if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(result.errorMessage ?? 'Failed to upload images')),
-            );
           }
         }
       } catch (e) {

@@ -1,64 +1,54 @@
 // ignore_for_file: avoid_print
 import 'package:chat_app/generated/l10n.dart';
 import 'package:chat_app/features/chat/models/message_data.dart';
-import 'package:chat_app/features/auth/providers/auth_view_model.dart';
-import 'package:chat_app/features/chat/providers/chat_room_notifier.dart';
-import 'package:chat_app/features/chat/providers/toast_provider.dart';
+import 'package:chat_app/features/chat/bloc/chat_room_cubit.dart';
+import 'package:chat_app/features/chat/bloc/toast_cubit.dart';
+import 'package:chat_app/features/auth/bloc/auth_cubit.dart';
 import 'package:chat_app/features/chat/widgets/input_toast.dart';
 import 'package:chat_app/features/chat/widgets/reactions_viewer.dart';
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-class MessageOptionsMenu extends ConsumerStatefulWidget {
+class MessageOptionsMenu extends StatefulWidget {
   final TextEditingController textController;
   final MessageData message;
-  final ChatRoomNotifierProvider chatroomProvider;
-  const MessageOptionsMenu({
-    super.key,
-    required this.chatroomProvider,
-    required this.textController,
-    required this.message,
-  });
+  const MessageOptionsMenu({super.key, required this.textController, required this.message});
 
   @override
-  ConsumerState<MessageOptionsMenu> createState() => _MessageOptionsMenuState();
+  State<MessageOptionsMenu> createState() => _MessageOptionsMenuState();
 }
 
-class _MessageOptionsMenuState extends ConsumerState<MessageOptionsMenu> {
+class _MessageOptionsMenuState extends State<MessageOptionsMenu> {
   void addReact(MessageData msg, String emoji) {
-    ref.read(widget.chatroomProvider.notifier).reactToMessage(message: msg, emoji: emoji);
+    context.read<ChatRoomCubit>().reactToMessage(message: msg, emoji: emoji);
   }
 
   void reply(MessageData repliedToMsg) {
     if (!mounted) return;
-    ref
-        .read(widget.chatroomProvider.notifier)
-        .sendMessage(
-          content: widget.textController.text,
-          replyTo: ReplyTo(
-            content: repliedToMsg.content ?? repliedToMsg.type,
-            messageId: repliedToMsg.id,
-          ),
-        );
+    context.read<ChatRoomCubit>().sendMessage(
+      content: widget.textController.text,
+      replyTo: ReplyTo(
+        content: repliedToMsg.content ?? repliedToMsg.type,
+        messageId: repliedToMsg.id,
+      ),
+    );
   }
 
   void edit(MessageData repliedToMsg) {
     if (!mounted) return;
-    ref
-        .read(widget.chatroomProvider.notifier)
-        .sendMessage(
-          content: widget.textController.text,
-          replyTo: ReplyTo(
-            content: repliedToMsg.content ?? repliedToMsg.type,
-            messageId: repliedToMsg.id,
-          ),
-        );
+    context.read<ChatRoomCubit>().sendMessage(
+      content: widget.textController.text,
+      replyTo: ReplyTo(
+        content: repliedToMsg.content ?? repliedToMsg.type,
+        messageId: repliedToMsg.id,
+      ),
+    );
   }
 
   void delete(msg) {
     if (!mounted) return;
-    ref.read(widget.chatroomProvider.notifier).deleteMessage(msgId: msg.id);
+    context.read<ChatRoomCubit>().deleteMessage(msgId: msg.id);
     if (mounted && context.mounted) {
       Navigator.pop(context);
     }
@@ -67,13 +57,13 @@ class _MessageOptionsMenuState extends ConsumerState<MessageOptionsMenu> {
   @override
   Widget build(BuildContext context) {
     bool isOwnMessage(MessageData msg) {
-      return msg.username == ref.read(authViewModelProvider.notifier).getCurrentUser()?.username;
+      return msg.username == context.read<AuthCubit>().getCurrentUser()?.username;
     }
 
     final t = S.of(context);
 
     void showEmojiPicker(MessageData message) {
-      final chatRoomNotifier = ref.read(widget.chatroomProvider.notifier);
+      final chatRoomCubit = context.read<ChatRoomCubit>();
 
       showModalBottomSheet(
         isScrollControlled: true,
@@ -86,7 +76,7 @@ class _MessageOptionsMenuState extends ConsumerState<MessageOptionsMenu> {
                 Navigator.pop(context); // Close emoji picker
               },
               onEmojiSelected: (Category? category, Emoji emoji) {
-                chatRoomNotifier.reactToMessage(message: message, emoji: emoji.emoji);
+                chatRoomCubit.reactToMessage(message: message, emoji: emoji.emoji);
                 Navigator.pop(context); // Close emoji picker
               },
               config: Config(
@@ -161,15 +151,13 @@ class _MessageOptionsMenuState extends ConsumerState<MessageOptionsMenu> {
             ),
             ElevatedButton(
               onPressed: () {
-                ref
-                    .read(toastProvider.notifier)
-                    .setToast(
-                      ReplyToast(
-                        messageRepliedTo: widget.message,
-                        sendReply: () => reply(widget.message),
-                        replyToText: t.replyTo(widget.message.username),
-                      ),
-                    );
+                context.read<ToastCubit>().setToast(
+                  ReplyToast(
+                    messageRepliedTo: widget.message,
+                    sendReply: () => reply(widget.message),
+                    replyToText: t.replyTo(widget.message.username),
+                  ),
+                );
                 Navigator.pop(context);
               },
               child: Text(t.replyToMessage),
@@ -180,14 +168,12 @@ class _MessageOptionsMenuState extends ConsumerState<MessageOptionsMenu> {
                     children: [
                       ElevatedButton(
                         onPressed: () {
-                          ref
-                              .read(toastProvider.notifier)
-                              .setToast(
-                                EditToast(
-                                  sendEdit: () => edit(widget.message),
-                                  editingText: t.editingMessage,
-                                ),
-                              );
+                          context.read<ToastCubit>().setToast(
+                            EditToast(
+                              sendEdit: () => edit(widget.message),
+                              editingText: t.editingMessage,
+                            ),
+                          );
 
                           widget.textController.text = widget.message.content ?? '';
                           Navigator.pop(context);

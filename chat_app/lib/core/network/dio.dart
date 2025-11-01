@@ -2,11 +2,8 @@ import 'package:chat_app/core/network/auth_interceptor.dart';
 import 'package:chat_app/core/config/server_url.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-part 'dio.g.dart';
 
-@riverpod
-Dio dio(Ref ref) {
+Dio getDioInstance() {
   final dio = Dio(
     BaseOptions(
       baseUrl: getServertUrl(),
@@ -23,4 +20,20 @@ Dio dio(Ref ref) {
   dio.interceptors.add(AuthInterceptor(const FlutterSecureStorage()));
 
   return dio;
+}
+
+extension ResponseExtension on Response {
+  bool get ok {
+    return switch (statusCode) {
+      200 || // OK
+      201 || // Created
+      202 || // Accepted
+      203 || // Non-Authoritative Information
+      204 || // No Content
+      205 || // Reset Content
+      206 // Partial Content
+      => true,
+      _ => false,
+    };
+  }
 }

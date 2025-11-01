@@ -1,8 +1,5 @@
 import 'package:chat_app/features/conversations/models/conversations_data.dart';
 import 'package:chat_app/features/conversations/services/conversations_service.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-
-part 'conversations_repo.g.dart';
 
 class ConversationsRepository {
   final ConversationsService _conversationsService;
@@ -16,9 +13,4 @@ class ConversationsRepository {
       rethrow;
     }
   }
-}
-
-@riverpod
-ConversationsRepository conversationsRepository(Ref ref) {
-  return ConversationsRepository(ref.watch(conversationsServiceProvider));
 }

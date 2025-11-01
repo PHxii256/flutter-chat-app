@@ -1,10 +1,6 @@
 import 'dart:convert';
-import 'package:chat_app/features/auth/services/token_storage_service.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../models/user_model.dart';
-
-part 'user_cache_service.g.dart';
 
 class UserCacheService {
   final FlutterSecureStorage _storage;
@@ -36,9 +32,4 @@ class UserCacheService {
     final userString = await _storage.read(key: 'cached_user');
     return userString != null;
   }
-}
-
-@riverpod
-UserCacheService userCacheService(Ref ref) {
-  return UserCacheService(ref.watch(secureStorageProvider));
 }

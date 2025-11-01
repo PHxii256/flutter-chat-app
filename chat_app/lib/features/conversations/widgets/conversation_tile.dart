@@ -1,16 +1,16 @@
 import 'package:chat_app/features/conversations/models/conversations_data.dart';
-import 'package:chat_app/features/auth/providers/auth_view_model.dart';
-import 'package:chat_app/features/conversations/providers/conversations_notifier.dart';
+import 'package:chat_app/features/auth/bloc/auth_cubit.dart';
+import 'package:chat_app/features/conversations/bloc/conversations_cubit.dart';
 import 'package:chat_app/features/chat/pages/chat_room_page.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-class ConversationTile extends ConsumerWidget {
+class ConversationTile extends StatelessWidget {
   final ConversationsData convoData;
   const ConversationTile({super.key, required this.convoData});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return ListTile(
       minTileHeight: 70,
       leading: Padding(
@@ -29,19 +29,17 @@ class ConversationTile extends ConsumerWidget {
       ),
       title: Text("Chatroom #${convoData.roomCode}", style: TextStyle(fontWeight: FontWeight.bold)),
       onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => ChatRoom(
-              username: ref.read(authViewModelProvider.notifier).getCurrentUser()!.username,
-              roomCode: convoData.roomCode,
+        final username = context.read<AuthCubit>().getCurrentUser()?.username;
+        if (username != null) {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => ChatRoom(username: username, roomCode: convoData.roomCode),
             ),
-          ),
-        );
+          );
+        }
       },
       subtitle: FutureBuilder<String>(
-        future: ref
-            .read(conversationsProvider.notifier)
-            .getFormatedLastMessage(convoData.lastMessage),
+        future: context.read<ConversationsCubit>().getFormattedLastMessage(convoData.lastMessage),
         builder: (context, snapshot) {
           return Text(
             snapshot.data ?? "",

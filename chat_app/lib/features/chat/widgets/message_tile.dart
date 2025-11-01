@@ -1,13 +1,13 @@
 // ignore_for_file: avoid_print
 import 'package:chat_app/generated/l10n.dart';
 import 'package:chat_app/features/chat/models/message_data.dart';
-import 'package:chat_app/features/chat/providers/chat_room_notifier.dart';
+import 'package:chat_app/features/chat/bloc/chat_room_cubit.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
-class MessageTile extends ConsumerStatefulWidget {
+class MessageTile extends StatefulWidget {
   final String roomCode;
   final String currentUsername;
   final MessageData message;
@@ -36,10 +36,10 @@ class MessageTile extends ConsumerStatefulWidget {
   }
 
   @override
-  ConsumerState<MessageTile> createState() => _MessageTileState();
+  State<MessageTile> createState() => _MessageTileState();
 }
 
-class _MessageTileState extends ConsumerState<MessageTile> {
+class _MessageTileState extends State<MessageTile> {
   int _highlightOpacity = 0;
 
   void highlight() {
@@ -97,9 +97,7 @@ class _MessageTileState extends ConsumerState<MessageTile> {
           onTap: () {
             if (!mounted) return;
             print('Reaction tapped: $emoji, hasUserReacted: $hasUserReacted');
-            ref
-                .read(chatRoomProvider(roomCode: widget.roomCode).notifier)
-                .reactToMessage(message: widget.message, emoji: emoji);
+            context.read<ChatRoomCubit>().reactToMessage(message: widget.message, emoji: emoji);
           },
           borderRadius: BorderRadius.circular(12),
           child: Container(
