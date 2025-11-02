@@ -1,33 +1,10 @@
-import 'package:chat_app/features/conversations/models/conversations_data.dart';
-import 'package:chat_app/features/conversations/models/message_preview_data.dart';
-import 'package:chat_app/features/chat/models/user_model.dart';
+import 'package:chat_app/features/conversations/bloc/conversations_state.dart';
+import 'package:chat_app/features/conversations/data/models/message_preview_data.dart';
+import 'package:chat_app/features/chat/data/models/user_model.dart';
 import 'package:chat_app/features/auth/data/repositories/auth_repository.dart';
-import 'package:chat_app/features/conversations/repositories/conversations_repo.dart';
+import 'package:chat_app/features/conversations/data/repositories/conversations_repo.dart';
 import 'package:bloc/bloc.dart';
 import 'package:collection/collection.dart';
-
-// States
-sealed class ConversationsState {
-  const ConversationsState();
-}
-
-class ConversationsInitial extends ConversationsState {
-  const ConversationsInitial();
-}
-
-class ConversationsLoading extends ConversationsState {
-  const ConversationsLoading();
-}
-
-class ConversationsLoaded extends ConversationsState {
-  final List<ConversationsData> conversations;
-  const ConversationsLoaded({required this.conversations});
-}
-
-class ConversationsError extends ConversationsState {
-  final String message;
-  const ConversationsError({required this.message});
-}
 
 // Cubit
 class ConversationsCubit extends Cubit<ConversationsState> {

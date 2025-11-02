@@ -1,38 +1,16 @@
 // ignore_for_file: avoid_print
 import 'dart:convert';
 import 'package:bloc/bloc.dart';
-import 'package:chat_app/features/chat/models/message_data.dart';
+import 'package:chat_app/features/chat/bloc/chat_room_state.dart';
+import 'package:chat_app/features/chat/data/models/message_data.dart';
 import 'package:chat_app/features/auth/data/repositories/auth_repository.dart';
-import 'package:chat_app/features/chat/services/socket_service.dart';
+import 'package:chat_app/features/chat/data/services/socket_service.dart';
 import 'package:chat_app/features/auth/data/services/token_storage_service.dart';
 import 'package:chat_app/shared/utils/pretty_json.dart';
 import 'package:chat_app/core/config/server_url.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
-
-// States
-sealed class ChatRoomState {
-  const ChatRoomState();
-}
-
-class ChatRoomInitial extends ChatRoomState {
-  const ChatRoomInitial();
-}
-
-class ChatRoomLoading extends ChatRoomState {
-  const ChatRoomLoading();
-}
-
-class ChatRoomLoaded extends ChatRoomState {
-  final List<MessageData> messages;
-  const ChatRoomLoaded({required this.messages});
-}
-
-class ChatRoomError extends ChatRoomState {
-  final String message;
-  const ChatRoomError({required this.message});
-}
 
 // Cubit
 class ChatRoomCubit extends Cubit<ChatRoomState> {

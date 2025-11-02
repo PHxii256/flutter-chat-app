@@ -1,6 +1,6 @@
 import 'package:chat_app/features/auth/bloc/auth_cubit.dart';
 import 'package:chat_app/features/auth/data/services/token_storage_service.dart';
-import 'package:chat_app/features/chat/services/image_upload_service.dart';
+import 'package:chat_app/features/chat/data/services/image_upload_service.dart';
 import 'package:chat_app/shared/utils/image_picker_helper.dart';
 import 'package:image_picker/image_picker.dart';
 

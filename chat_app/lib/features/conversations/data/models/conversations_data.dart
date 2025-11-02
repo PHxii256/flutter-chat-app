@@ -1,5 +1,5 @@
-import 'package:chat_app/features/conversations/models/message_preview_data.dart';
-import 'package:chat_app/features/chat/models/user_model.dart';
+import 'package:chat_app/features/conversations/data/models/message_preview_data.dart';
+import 'package:chat_app/features/chat/data/models/user_model.dart';
 
 class ConversationsData {
   final String roomCode;

@@ -1,6 +1,6 @@
 // ignore_for_file: avoid_print
 import 'package:chat_app/generated/l10n.dart';
-import 'package:chat_app/features/chat/models/message_data.dart';
+import 'package:chat_app/features/chat/data/models/message_data.dart';
 import 'package:flutter/material.dart';
 
 class ReactionsViewer extends StatefulWidget {

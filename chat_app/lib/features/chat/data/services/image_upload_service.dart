@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
-import 'package:chat_app/features/chat/models/message_data.dart';
+import 'package:chat_app/features/chat/data/models/message_data.dart';
 import 'package:chat_app/core/config/server_url.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;

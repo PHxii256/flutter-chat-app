@@ -1,5 +1,5 @@
 // ignore: library_prefixes
-import 'package:chat_app/features/chat/models/message_data.dart';
+import 'package:chat_app/features/chat/data/models/message_data.dart';
 import 'package:chat_app/core/config/server_url.dart';
 // ignore: library_prefixes
 import 'package:socket_io_client/socket_io_client.dart' as IO;

@@ -1,5 +1,5 @@
-import 'package:chat_app/features/chat/models/user_model.dart';
-import 'package:chat_app/features/chat/services/user_cache_service.dart';
+import 'package:chat_app/features/chat/data/models/user_model.dart';
+import 'package:chat_app/features/chat/data/services/user_cache_service.dart';
 import '../services/auth_service.dart';
 import '../services/token_storage_service.dart';
 

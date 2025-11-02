@@ -2,7 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:chat_app/features/auth/bloc/auth_state.dart';
 import 'package:chat_app/features/auth/data/models/auth_response.dart';
 import 'package:chat_app/features/auth/data/repositories/auth_repository.dart';
-import 'package:chat_app/features/chat/models/user_model.dart';
+import 'package:chat_app/features/chat/data/models/user_model.dart';
 
 class AuthCubit extends Cubit<AuthState> {
   final AuthRepository _authRepository;

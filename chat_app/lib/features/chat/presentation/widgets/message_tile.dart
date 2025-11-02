@@ -1,6 +1,6 @@
 // ignore_for_file: avoid_print
 import 'package:chat_app/generated/l10n.dart';
-import 'package:chat_app/features/chat/models/message_data.dart';
+import 'package:chat_app/features/chat/data/models/message_data.dart';
 import 'package:chat_app/features/chat/bloc/chat_room_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';

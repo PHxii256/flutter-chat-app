@@ -1,4 +1,4 @@
-import 'package:chat_app/features/chat/models/user_model.dart';
+import 'package:chat_app/features/chat/data/models/user_model.dart';
 
 sealed class AuthResponse {
   AuthResponse();

@@ -2,7 +2,7 @@
 import 'package:chat_app/features/auth/bloc/auth_cubit.dart';
 import 'package:chat_app/features/auth/bloc/auth_state.dart';
 import 'package:chat_app/generated/l10n.dart';
-import 'package:chat_app/features/chat/pages/chat_room_page.dart';
+import 'package:chat_app/features/chat/presentation/pages/chat_room_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 

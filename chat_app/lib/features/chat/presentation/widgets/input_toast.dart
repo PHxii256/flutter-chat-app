@@ -1,4 +1,4 @@
-import 'package:chat_app/features/chat/models/message_data.dart';
+import 'package:chat_app/features/chat/data/models/message_data.dart';
 import 'package:chat_app/features/chat/bloc/toast_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';

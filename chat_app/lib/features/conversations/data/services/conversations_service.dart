@@ -1,19 +1,13 @@
-import 'package:chat_app/features/conversations/models/conversations_data.dart';
 import 'package:dio/dio.dart';
 
 class ConversationsService {
   final Dio _dio;
   ConversationsService(this._dio);
 
-  Future<List<ConversationsData>> getChatrooms(String userId) async {
+  Future<List<dynamic>> getChatrooms(String userId) async {
     try {
       final res = await _dio.get("/conversations");
-
-      List<ConversationsData> chats = [];
-      for (var data in res.data) {
-        chats.add(ConversationsData.fromJson(data));
-      }
-      return chats;
+      return res.data;
     } on DioException catch (e) {
       if (e.response?.statusCode == 401 || e.response?.statusCode == 403) {
         print(
