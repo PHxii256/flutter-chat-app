@@ -5,8 +5,6 @@ import 'package:chat_app/features/auth/data/services/auth_service.dart';
 import 'package:chat_app/features/auth/data/services/token_storage_service.dart';
 import 'package:chat_app/features/chat/data/services/user_cache_service.dart';
 import 'package:chat_app/features/localization/bloc/locale_cubit.dart';
-import 'package:chat_app/features/conversations/data/repositories/conversations_repo.dart';
-import 'package:chat_app/features/conversations/data/services/conversations_service.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';

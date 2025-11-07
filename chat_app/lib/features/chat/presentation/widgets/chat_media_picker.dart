@@ -1,7 +1,7 @@
+import 'package:chat_app/features/chat/data/services/image_upload_handler.dart';
 import 'package:chat_app/shared/utils/image_picker_helper.dart';
 import 'package:chat_app/features/auth/bloc/auth_cubit.dart';
 import 'package:chat_app/features/auth/data/services/token_storage_service.dart';
-import 'package:chat_app/features/chat/data/services/image_upload_handler.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';

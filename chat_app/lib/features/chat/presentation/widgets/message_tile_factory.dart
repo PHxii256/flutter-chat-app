@@ -1,8 +1,8 @@
 // ignore_for_file: avoid_print
 import 'package:chat_app/features/chat/data/models/message_data.dart';
+import 'package:chat_app/features/chat/presentation/widgets/image_message_tile.dart';
 import 'package:chat_app/features/chat/presentation/widgets/message_tile.dart';
 import 'package:chat_app/features/chat/presentation/widgets/text_message_tile.dart';
-import 'package:chat_app/features/chat/presentation/widgets/image_message_tile.dart';
 import 'package:flutter/material.dart';
 
 class MessageTileFactory extends StatelessWidget {
