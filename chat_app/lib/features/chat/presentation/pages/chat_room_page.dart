@@ -11,6 +11,7 @@ import 'package:chat_app/features/chat/presentation/widgets/message_options_menu
 import 'package:chat_app/features/chat/presentation/widgets/message_tile_factory.dart';
 import 'package:chat_app/features/auth/data/services/token_storage_service.dart';
 import 'package:chat_app/features/auth/data/repositories/auth_repository.dart';
+import 'package:chat_app/features/auth/bloc/auth_cubit.dart';
 import 'package:chat_app/features/conversations/bloc/conversation_members_cubit.dart';
 import 'package:chat_app/features/conversations/bloc/conversations_cubit.dart';
 import 'package:flutter/material.dart';
@@ -73,30 +74,18 @@ class _ChatRoomState extends State<ChatRoom> {
     });
   }
 
-  void setupAutoScroll() {
-    // Set up callback for the cubit to trigger scrolling
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final cubit = context.read<ChatRoomCubit>();
-      cubit.onMessagesChanged = () {
-        jumpToLastMessage(animated: true);
-      };
-      cubit.onHistoryLoaded = () {
-        jumpToLastMessage(animated: false);
-      };
-    });
-  }
-
-  void showOptionsMenu(MessageData message) {
+  void showOptionsMenu(MessageData message, ChatRoomCubit chatRoomCubit, ToastCubit toastCubit) {
     if (mounted && message.senderId != "Server") {
       showModalBottomSheet(
         context: context,
         builder: (modalContext) {
-          return BlocProvider.value(
-            value: context.read<ChatRoomCubit>(),
-            child: BlocProvider.value(
-              value: context.read<ToastCubit>(),
-              child: MessageOptionsMenu(textController: textController, message: message),
-            ),
+          return MultiBlocProvider(
+            providers: [
+              BlocProvider.value(value: chatRoomCubit),
+              BlocProvider.value(value: toastCubit),
+              BlocProvider.value(value: context.read<AuthCubit>()),
+            ],
+            child: MessageOptionsMenu(textController: textController, message: message),
           );
         },
       );
@@ -106,9 +95,6 @@ class _ChatRoomState extends State<ChatRoom> {
   @override
   Widget build(BuildContext context) {
     final t = S.of(context);
-
-    // Set up callback for the cubit to trigger scrolling
-    setupAutoScroll();
 
     return MultiBlocProvider(
       providers: [
@@ -120,10 +106,25 @@ class _ChatRoomState extends State<ChatRoom> {
               authRepository: context.read<AuthRepository>(),
             );
             cubit.initialize(username: widget.username);
+
+            // Set up auto-scroll callbacks after cubit is created
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              cubit.onMessagesChanged = () {
+                jumpToLastMessage(animated: true);
+              };
+              cubit.onHistoryLoaded = () {
+                jumpToLastMessage(animated: false);
+              };
+            });
             return cubit;
           },
         ),
-        BlocProvider(create: (context) => ToastCubit()),
+        BlocProvider(
+          create: (context) {
+            final cubit = ToastCubit();
+            return cubit;
+          },
+        ),
         BlocProvider(
           create: (context) {
             final cubit = ConversationMembersCubit(
@@ -146,6 +147,9 @@ class _ChatRoomState extends State<ChatRoom> {
                 child: BlocBuilder<ChatRoomCubit, ChatRoomState>(
                   builder: (context, state) {
                     if (state is ChatRoomLoaded) {
+                      final chatRoomCubit = context.read<ChatRoomCubit>();
+                      final toastCubit = context.read<ToastCubit>();
+
                       return Scrollbar(
                         controller: scrollController,
                         child: ListView.builder(
@@ -154,7 +158,6 @@ class _ChatRoomState extends State<ChatRoom> {
                           itemCount: state.messages.length,
                           itemBuilder: (context, index) {
                             final message = state.messages[index];
-                            // Create or get existing key for this message
                             _messageKeys.putIfAbsent(message.id, () => GlobalKey());
                             return MessageTileFactory(
                               currentUsername: widget.username,
@@ -163,7 +166,8 @@ class _ChatRoomState extends State<ChatRoom> {
                               jumpToMessage: (String messageId) => jumpToMessageById(messageId),
                               message: message,
                               index: index,
-                              onLongPress: () => showOptionsMenu(message),
+                              onLongPress: () =>
+                                  showOptionsMenu(message, chatRoomCubit, toastCubit),
                             );
                           },
                         ),

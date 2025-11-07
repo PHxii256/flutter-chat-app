@@ -35,14 +35,11 @@ class _MessageOptionsMenuState extends State<MessageOptionsMenu> {
     );
   }
 
-  void edit(MessageData repliedToMsg) {
+  void edit(MessageData messageToBeEdited) {
     if (!mounted) return;
-    context.read<ChatRoomCubit>().sendMessage(
-      content: widget.textController.text,
-      replyTo: ReplyTo(
-        content: repliedToMsg.content ?? repliedToMsg.type,
-        messageId: repliedToMsg.id,
-      ),
+    context.read<ChatRoomCubit>().updateMessage(
+      messageId: messageToBeEdited.id,
+      newContent: widget.textController.text,
     );
   }
 
