@@ -8,6 +8,7 @@ class TextMessageContent extends StatelessWidget {
   const TextMessageContent({super.key, required this.message});
 
   String _getMessage() {
+    print("c: ${message.createdAt}, u: ${message.updatedAt}, e?: ${message.isEdited()}");
     if (message.senderId == 'Server') {
       return message.content ?? '';
     } else {
@@ -15,8 +16,26 @@ class TextMessageContent extends StatelessWidget {
     }
   }
 
+  Widget _getEditedText() {
+    return message.isEdited()
+        ? Padding(
+            padding: const EdgeInsets.only(left: 4.0),
+            child: Text(
+              "(edited)",
+              style: TextStyle(fontSize: 13, color: Colors.grey, fontStyle: FontStyle.italic),
+            ),
+          )
+        : Container();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Text(_getMessage(), style: Theme.of(context).textTheme.bodyLarge);
+    return Wrap(
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        Text(_getMessage(), style: Theme.of(context).textTheme.bodyLarge),
+        _getEditedText(),
+      ],
+    );
   }
 }

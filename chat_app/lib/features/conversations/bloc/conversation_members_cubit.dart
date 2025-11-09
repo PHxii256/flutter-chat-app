@@ -1,37 +1,12 @@
 import 'package:chat_app/features/chat/data/models/user_model.dart';
 import 'package:chat_app/features/conversations/bloc/conversation_members_state.dart';
-import 'package:chat_app/features/conversations/bloc/conversations_cubit.dart';
 import 'package:bloc/bloc.dart';
-import 'package:chat_app/features/conversations/bloc/conversations_state.dart';
-import 'package:collection/collection.dart';
 
-// Cubit
 class ConversationMembersCubit extends Cubit<ConversationMembersState> {
   final String roomCode;
-  final ConversationsCubit _conversationsCubit;
 
-  ConversationMembersCubit({required this.roomCode, required ConversationsCubit conversationsCubit})
-    : _conversationsCubit = conversationsCubit,
-      super(const ConversationMembersInitial());
-
-  Future<void> loadMembers() async {
-    emit(const ConversationMembersLoading());
-
-    try {
-      final conversationsState = _conversationsCubit.state;
-      if (conversationsState is ConversationsLoaded) {
-        final currentConversation = conversationsState.conversations.firstWhereOrNull(
-          (convo) => convo.roomCode == roomCode,
-        );
-
-        emit(ConversationMembersLoaded(members: currentConversation?.memberList ?? []));
-      } else {
-        emit(const ConversationMembersLoaded(members: []));
-      }
-    } catch (e) {
-      emit(ConversationMembersError(message: e.toString()));
-    }
-  }
+  ConversationMembersCubit({required this.roomCode, List<User>? initialMembers})
+    : super(ConversationMembersLoaded(members: initialMembers ?? []));
 
   User? getCurrentUser(String username) {
     final currentState = state;

@@ -24,9 +24,8 @@ class _MessageOptionsMenuState extends State<MessageOptionsMenu> {
     context.read<ChatRoomCubit>().reactToMessage(message: msg, emoji: emoji);
   }
 
-  void reply(MessageData repliedToMsg) {
-    if (!mounted) return;
-    context.read<ChatRoomCubit>().sendMessage(
+  void reply(MessageData repliedToMsg, ChatRoomCubit chatRoomCubit) {
+    chatRoomCubit.sendMessage(
       content: widget.textController.text,
       replyTo: ReplyTo(
         content: repliedToMsg.content ?? repliedToMsg.type,
@@ -35,17 +34,15 @@ class _MessageOptionsMenuState extends State<MessageOptionsMenu> {
     );
   }
 
-  void edit(MessageData messageToBeEdited) {
-    if (!mounted) return;
-    context.read<ChatRoomCubit>().updateMessage(
+  void edit(MessageData messageToBeEdited, ChatRoomCubit chatRoomCubit) {
+    chatRoomCubit.updateMessage(
       messageId: messageToBeEdited.id,
       newContent: widget.textController.text,
     );
   }
 
-  void delete(msg) {
-    if (!mounted) return;
-    context.read<ChatRoomCubit>().deleteMessage(msgId: msg.id);
+  void delete(msg, ChatRoomCubit chatRoomCubit) {
+    chatRoomCubit.deleteMessage(msgId: msg.id);
     if (mounted && context.mounted) {
       Navigator.pop(context);
     }
@@ -53,15 +50,17 @@ class _MessageOptionsMenuState extends State<MessageOptionsMenu> {
 
   @override
   Widget build(BuildContext context) {
+    final chatRoomCubit = context.read<ChatRoomCubit>();
+    final toastCubit = context.read<ToastCubit>();
+    final authCubit = context.read<AuthCubit>();
+
     bool isOwnMessage(MessageData msg) {
-      return msg.username == context.read<AuthCubit>().getCurrentUser()?.username;
+      return msg.username == authCubit.getCurrentUser()?.username;
     }
 
     final t = S.of(context);
 
     void showEmojiPicker(MessageData message) {
-      final chatRoomCubit = context.read<ChatRoomCubit>();
-
       showModalBottomSheet(
         isScrollControlled: true,
         context: context,
@@ -148,10 +147,10 @@ class _MessageOptionsMenuState extends State<MessageOptionsMenu> {
             ),
             ElevatedButton(
               onPressed: () {
-                context.read<ToastCubit>().setToast(
+                toastCubit.setToast(
                   ReplyToast(
                     messageRepliedTo: widget.message,
-                    sendReply: () => reply(widget.message),
+                    sendReply: () => reply(widget.message, chatRoomCubit),
                     replyToText: t.replyTo(widget.message.username),
                   ),
                 );
@@ -165,9 +164,9 @@ class _MessageOptionsMenuState extends State<MessageOptionsMenu> {
                     children: [
                       ElevatedButton(
                         onPressed: () {
-                          context.read<ToastCubit>().setToast(
+                          toastCubit.setToast(
                             EditToast(
-                              sendEdit: () => edit(widget.message),
+                              sendEdit: () => edit(widget.message, chatRoomCubit),
                               editingText: t.editingMessage,
                             ),
                           );
@@ -178,7 +177,7 @@ class _MessageOptionsMenuState extends State<MessageOptionsMenu> {
                         child: Text(t.editMessage),
                       ),
                       ElevatedButton(
-                        onPressed: () => delete(widget.message),
+                        onPressed: () => delete(widget.message, chatRoomCubit),
                         child: Text(t.deleteMessage, style: TextStyle(color: Colors.red)),
                       ),
                     ],

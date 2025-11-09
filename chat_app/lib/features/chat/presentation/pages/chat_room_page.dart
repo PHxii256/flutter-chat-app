@@ -13,15 +13,21 @@ import 'package:chat_app/features/auth/data/services/token_storage_service.dart'
 import 'package:chat_app/features/auth/data/repositories/auth_repository.dart';
 import 'package:chat_app/features/auth/bloc/auth_cubit.dart';
 import 'package:chat_app/features/conversations/bloc/conversation_members_cubit.dart';
-import 'package:chat_app/features/conversations/bloc/conversations_cubit.dart';
+import 'package:chat_app/features/chat/data/models/user_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ChatRoom extends StatefulWidget {
-  const ChatRoom({super.key, this.username = "default user", this.roomCode = "general"});
+  const ChatRoom({
+    super.key,
+    this.username = "default user",
+    this.roomCode = "general",
+    this.members,
+  });
 
   final String username;
   final String roomCode;
+  final List<User>? members;
 
   @override
   State<ChatRoom> createState() => _ChatRoomState();
@@ -129,9 +135,8 @@ class _ChatRoomState extends State<ChatRoom> {
           create: (context) {
             final cubit = ConversationMembersCubit(
               roomCode: widget.roomCode,
-              conversationsCubit: context.read<ConversationsCubit>(),
+              initialMembers: widget.members,
             );
-            cubit.loadMembers();
             return cubit;
           },
         ),

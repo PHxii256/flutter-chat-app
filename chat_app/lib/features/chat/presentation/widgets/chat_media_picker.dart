@@ -45,14 +45,12 @@ class ChatMediaPicker extends StatelessWidget {
           );
 
           // Close loading dialog
-
           if (context.mounted) Navigator.of(context).pop();
 
           // Handle result
           if (result.success) {
             // Clear text controller on success
             textController.clear();
-
             // Show warning if some images were invalid
             if (result.invalidImageNames != null && result.invalidImageNames!.isNotEmpty) {
               if (context.mounted) {

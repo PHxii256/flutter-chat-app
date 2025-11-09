@@ -127,6 +127,11 @@ class MessageData {
     this.replyTo,
   });
 
+  bool isEdited() {
+    if (updatedAt != null) return !createdAt.isAtSameMomentAs(updatedAt!);
+    return false;
+  }
+
   static ReplyTo? getMsgRepliedTo(Map<String, dynamic> json) {
     if (json.containsKey("replyTo") && json["replyTo"] != null) {
       return ReplyTo(content: json["replyTo"]["content"], messageId: json["replyTo"]["messageId"]);

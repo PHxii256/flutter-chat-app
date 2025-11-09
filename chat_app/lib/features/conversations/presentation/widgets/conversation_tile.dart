@@ -33,7 +33,11 @@ class ConversationTile extends StatelessWidget {
         if (username != null) {
           Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (context) => ChatRoom(username: username, roomCode: convoData.roomCode),
+              builder: (context) => ChatRoom(
+                username: username,
+                roomCode: convoData.roomCode,
+                members: convoData.memberList,
+              ),
             ),
           );
         }
